@@ -1,20 +1,23 @@
-module Sanskell.Types (Link) where
+module Sanskell.Types where
 
 import qualified Network.URI as NU (URI)
 import qualified Control.Concurrent as Con (Chan)
 import qualified Data.Text as T (Text)
 
 newtype JobId = JobId Int
+type DepthRemaining = Int
 
-data Link = Link JobId NU.URI
+data Link = Link JobId DepthRemaining NU.URI
 
-type LinkChannel = Con.Chan Link
+data CrawlResult = CrawlResult { jobId    :: JobId
+                               , url      :: NU.URI
+                               , bodyText :: [ T.Text ]
+                               }
+                 | CrawlFinished
 
-data CrawlResult =
-  CrawlResult
-  { bodyText :: T.Text
-  , links    :: [ NU.URI ]
-  , workId   :: JobId
+type CrawlResultChan = Con.Chan CrawlResult
+
+data CrawlConfig =
+  CrawlConfig
+  { numThreads :: Int
   }
-
-type CrawlChannel = Con.Chan CrawlResult
