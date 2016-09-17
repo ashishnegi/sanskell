@@ -9,9 +9,12 @@ import qualified Control.Concurrent.Async as A
 import qualified Data.Text as T
 import qualified Text.HTML.Scalpel as SP
 
-import Data.Maybe (catMaybes)
-import Control.Monad (replicateM_, forM_, when, replicateM)
+import Data.Maybe (catMaybes, fromJust)
+import Control.Monad (forM_, when, replicateM)
+import Control.Monad.Fix (fix)
 import qualified Sanskell.Types as ST
+
+import Debug.Trace
 
 data Job = Job ST.Link | JobEnded
 type LinkQueue = CStm.TQueue Job
@@ -25,11 +28,13 @@ crawlingThread ST.CrawlConfig{..} baseLink outChan = do
   CStm.atomically $ CStm.writeTQueue inQueue (Job baseLink)
   -- fork numThreds threds.
   asyncWorks <- replicateM numThreads $ A.async $ scrappingThread (inQueue, outChan)
-  -- as consumers / scrappingThread are slow, queue emptiness means that we are done..
-  -- if even one of the thread returns this means work is finished.
-  replicateM_ numThreads $ CStm.atomically $ CStm.writeTQueue inQueue JobEnded
   -- wait for all threads to finish
   mapM_ A.wait asyncWorks
+
+  putStrLn "Waiting done!!!"
+  remainingWork <- flushQueue inQueue
+  when (length remainingWork > 0) $ putStrLn "Bad.. Could not finish the work"
+
   -- tell caller that work has finished.
   Con.writeChan outChan ST.CrawlFinished
 
@@ -43,24 +48,57 @@ scrappingThread chans@(inQueue, outChan) = do
       texts <- SP.scrapeURL link $ SP.texts SP.Any
       links <- SP.scrapeURL link $ SP.attrs "href" SP.Any
 
-      let normalizedLinks = catMaybes $ maybe [] (fmap $ normalizeLink linkUri) links
+      let validLinks = catMaybes $ maybe [] (fmap $ validizeLink linkUri) links
       let crawlResult = ST.CrawlResult jobId linkUri <$> texts
       maybe (return ()) (Con.writeChan outChan) crawlResult
 
       when (depthRemaining > 0) $
-        CStm.atomically $ forM_ normalizedLinks $ CStm.writeTQueue inQueue . Job . ST.Link jobId (depthRemaining - 1)
+        CStm.atomically $ forM_ validLinks $ CStm.writeTQueue inQueue . Job . ST.Link jobId (depthRemaining - 1)
       -- as consumers / scrappingThread are slow, queue emptiness means that we are done..
       emptyQueue <- CStm.atomically $ CStm.isEmptyTQueue inQueue
-      when (not emptyQueue) $ scrappingThread chans
+
+      putStrLn . show $ ("Done: ", link, " Empty Queue: ", emptyQueue)
+      -- as consumers / scrappingThread are slow, queue emptiness means that we are done..
+      -- if even one of the thread returns this means work is finished.
+      -- tell other threads to stop as well
+      if emptyQueue
+      then CStm.atomically $ CStm.writeTQueue inQueue JobEnded
+      else scrappingThread chans
+
     JobEnded -> return () -- do not recurse
   where
-    normalizeLink :: NU.URI -> T.Text -> Maybe NU.URI
-    normalizeLink base newUrl = if T.length newUrl > 0
-                                then flip NU.relativeTo base <$> NU.parseURIReference (T.unpack newUrl)
-                                else Nothing
+    validizeLink :: NU.URI -> T.Text -> Maybe NU.URI
+    validizeLink base newUrl =
+      if T.length newUrl > 0
+      then let v = flip NU.relativeTo base <$> NU.parseURIReference (T.unpack newUrl)
+               v2 = sameDomainURI (NU.uriAuthority base) v
+           in traceShow (v,v2) v2
+      else Nothing
 
--- test :: IO ()
--- test = do
---   let uri = Data.Maybe.fromJust $ NU.parseURI "https://www.facebook.com"
---   chan <- Con.newChan
---   (crawlingThread (ST.CrawlConfig 2) (ST.Link (ST.JobId 1) 1 uri) chan) >> return ()
+    sameDomainURI :: Maybe NU.URIAuth -> Maybe NU.URI -> Maybe NU.URI
+    sameDomainURI baseUriAuth maybeUri = do
+      uri <- maybeUri
+      auth <- NU.uriAuthority uri
+      baseUriRegName <- baseUriAuth
+      if NU.uriRegName baseUriRegName == NU.uriRegName auth
+      then return uri
+      else Nothing
+
+flushQueue :: CStm.TQueue a -> IO [a]
+flushQueue channel = CStm.atomically $ readAll channel
+  where readAll c = do
+          emptyChan <- CStm.isEmptyTQueue c
+          if emptyChan
+          then return []
+          else (:) <$> CStm.readTQueue c <*> readAll c
+
+test :: IO (Con.ThreadId)
+test = do
+  let uri = fromJust $ NU.parseURI "https://jaspervdj.be/hakyll/"
+  chan <- Con.newChan
+  (crawlingThread (ST.CrawlConfig 2) (ST.Link (ST.JobId 1) 1 uri) chan) >> return ()
+  Con.forkIO $ fix $ \loop -> do
+    m <- Con.readChan chan
+    case m of
+      ST.CrawlFinished -> return ()
+      ST.CrawlResult _ url _ -> (putStrLn $ NU.uriToString id url $ "") >> loop
