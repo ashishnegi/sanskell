@@ -57,7 +57,8 @@ scrappingThread chans@(inQueue, outChan) = do
       -- as consumers / scrappingThread are slow, queue emptiness means that we are done..
       emptyQueue <- CStm.atomically $ CStm.isEmptyTQueue inQueue
 
-      putStrLn . show $ ("Done: ", link, " Empty Queue: ", emptyQueue)
+      threadId <- Con.myThreadId
+      putStrLn . show $ ("ThreadId: ", threadId, "Done: ", link, " Empty Queue: ", emptyQueue)
       -- as consumers / scrappingThread are slow, queue emptiness means that we are done..
       -- if even one of the thread returns this means work is finished.
       -- tell other threads to stop as well
