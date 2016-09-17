@@ -33,7 +33,8 @@ crawlingThread ST.CrawlConfig{..} baseLink outChan = do
 
   putStrLn "Waiting done!!!"
   remainingWork <- flushQueue inQueue
-  when (length remainingWork > 0) $ putStrLn "Bad.. Could not finish the work"
+  -- One JobEnded Msg would be there. :P
+  when (length remainingWork > 1) $ putStrLn "Bad.. Could not finish the work"
 
   -- tell caller that work has finished.
   Con.writeChan outChan ST.CrawlFinished
@@ -66,7 +67,11 @@ scrappingThread chans@(inQueue, outChan) = do
       then CStm.atomically $ CStm.writeTQueue inQueue JobEnded
       else scrappingThread chans
 
-    JobEnded -> return () -- do not recurse
+    -- do not recurse
+    JobEnded -> do
+      threadId <- Con.myThreadId
+      putStrLn . show $ ("ThreadId: ", threadId, " received JobEnded")
+      CStm.atomically $ CStm.writeTQueue inQueue JobEnded
   where
     validizeLink :: NU.URI -> T.Text -> Maybe NU.URI
     validizeLink base newUrl =
