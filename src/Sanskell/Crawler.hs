@@ -6,10 +6,11 @@ import qualified Network.URI as NU
 import qualified Control.Concurrent as Con
 import qualified Control.Concurrent.STM as CStm
 import qualified Control.Concurrent.Async as A
-
+import qualified Data.Text as T
 import qualified Text.HTML.Scalpel as SP
+
 import Data.Maybe (catMaybes)
-import Control.Monad (replicateM_, forM_, when, replicateM, mapM_)
+import Control.Monad (replicateM_, forM_, when, replicateM)
 import qualified Sanskell.Types as ST
 
 data Job = Job ST.Link | JobEnded
@@ -41,9 +42,11 @@ scrappingThread chans@(inQueue, outChan) = do
       let link = NU.uriToString id linkUri $ ""
       texts <- SP.scrapeURL link $ SP.texts SP.Any
       links <- SP.scrapeURL link $ SP.attrs "href" SP.Any
+
       let normalizedLinks = catMaybes $ maybe [] (fmap $ normalizeLink linkUri) links
       let crawlResult = ST.CrawlResult jobId linkUri <$> texts
       maybe (return ()) (Con.writeChan outChan) crawlResult
+
       when (depthRemaining > 0) $
         CStm.atomically $ forM_ normalizedLinks $ CStm.writeTQueue inQueue . Job . ST.Link jobId (depthRemaining - 1)
       -- as consumers / scrappingThread are slow, queue emptiness means that we are done..
@@ -51,5 +54,12 @@ scrappingThread chans@(inQueue, outChan) = do
       when (not emptyQueue) $ scrappingThread chans
     JobEnded -> return () -- do not recurse
   where
-    normalizeLink :: NU.URI -> String -> Maybe NU.URI
-    normalizeLink base newUrl = flip NU.relativeTo base <$> NU.parseURIReference newUrl
+    normalizeLink :: NU.URI -> T.Text -> Maybe NU.URI
+    normalizeLink base newUrl = flip NU.relativeTo base <$> NU.parseURIReference (T.unpack newUrl)
+
+
+-- test :: IO ()
+-- test = do
+--   let uri = Data.Maybe.fromJust $ NU.parseURI "https://www.facebook.com"
+--   chan <- Con.newChan
+--   (crawlingThread (ST.CrawlConfig 2) (ST.Link (ST.JobId 1) 1 uri) chan) >> return ()
