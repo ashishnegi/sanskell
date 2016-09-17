@@ -98,13 +98,16 @@ flushQueue channel = CStm.atomically $ readAll channel
           then return []
           else (:) <$> CStm.readTQueue c <*> readAll c
 
-test :: IO (Con.ThreadId)
+test :: IO ()
 test = do
   let uri = fromJust $ NU.parseURI "https://jaspervdj.be/hakyll/"
   chan <- Con.newChan
-  (crawlingThread (ST.CrawlConfig 2) (ST.Link (ST.JobId 1) 1 uri) chan) >> return ()
-  Con.forkIO $ fix $ \loop -> do
+  threadId <- Con.forkIO $ crawlingThread (ST.CrawlConfig 2) (ST.Link (ST.JobId 1) 1 uri) chan
+
+  fix $ \loop -> do
     m <- Con.readChan chan
     case m of
       ST.CrawlFinished -> return ()
       ST.CrawlResult _ url _ -> (putStrLn $ NU.uriToString id url $ "") >> loop
+
+  Con.killThread threadId

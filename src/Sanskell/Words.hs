@@ -24,9 +24,10 @@ textsOnWebsite url jobId = do
           link = ST.Link jobId 3 uri
 
       crawlResultChan <- Con.newChan
-      SC.crawlingThread config link crawlResultChan
+      crawlingThread <- Con.forkIO $ SC.crawlingThread config link crawlResultChan
 
       allTexts <- foldr (joinAllTexts crawlResultChan) (return []) [1..]
+      Con.killThread crawlingThread
       return $ Right allTexts)
     parsedUri
 
