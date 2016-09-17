@@ -55,8 +55,9 @@ scrappingThread chans@(inQueue, outChan) = do
     JobEnded -> return () -- do not recurse
   where
     normalizeLink :: NU.URI -> T.Text -> Maybe NU.URI
-    normalizeLink base newUrl = flip NU.relativeTo base <$> NU.parseURIReference (T.unpack newUrl)
-
+    normalizeLink base newUrl = if T.length newUrl > 0
+                                then flip NU.relativeTo base <$> NU.parseURIReference (T.unpack newUrl)
+                                else Nothing
 
 -- test :: IO ()
 -- test = do
