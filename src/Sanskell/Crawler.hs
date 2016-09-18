@@ -100,13 +100,14 @@ scrappingThread chans@(inQueue, outChan) crawledPages maxPagesToCrawl = do
       else Nothing
 
     getToCrawlLinks crawledPages validLinks = do
-      pages <- Con.readMVar crawledPages
-      if DS.size pages < maxPagesToCrawl
-      then Con.modifyMVar crawledPages $
+      Con.modifyMVar crawledPages $
              (\ crawledLinks -> do
-                  let newToCrawlLinks = DL.filter (\vl -> DS.notMember (NU.uriPath vl) crawledLinks) validLinks
-                  return (DS.union crawledLinks (DS.fromList (fmap NU.uriPath newToCrawlLinks)), newToCrawlLinks))
-      else return []
+                  if DS.size crawledLinks < maxPagesToCrawl
+                  then do
+                    let newToCrawlLinks = DL.filter (\vl -> DS.notMember (NU.uriPath vl) crawledLinks) validLinks
+                        newToCrawlLinksInLimit = take (maxPagesToCrawl - DS.size crawledLinks) newToCrawlLinks
+                    return (DS.union crawledLinks (DS.fromList (fmap NU.uriPath newToCrawlLinksInLimit)), newToCrawlLinksInLimit)
+                  else return (crawledLinks, []))
 
 flushQueue :: CStm.TQueue a -> IO [a]
 flushQueue channel = CStm.atomically $ readAll channel
