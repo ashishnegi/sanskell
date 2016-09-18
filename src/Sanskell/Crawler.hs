@@ -7,7 +7,9 @@ import qualified Control.Concurrent as Con
 import qualified Control.Concurrent.STM as CStm
 import qualified Control.Concurrent.Async as A
 import qualified Data.Text as T
+import qualified Data.Set as DS
 import qualified Text.HTML.Scalpel as SP
+import qualified Data.List as DL
 
 import Data.Maybe (catMaybes, fromJust)
 import Control.Monad (forM_, when, replicateM)
@@ -18,16 +20,19 @@ import Debug.Trace
 
 data Job = Job ST.Link | JobEnded
 type LinkQueue = CStm.TQueue Job
+type CrawledPages = Con.MVar (DS.Set String)
 
 -- one crawling thread in app :
 --  should fork as many scrappingThreads as in config.
 --  Load distribution among scrappingThread(s) : each thread eagerly takes work.
 crawlingThread :: ST.CrawlConfig -> ST.Link -> ST.CrawlResultChan -> IO ()
 crawlingThread ST.CrawlConfig{..} baseLink outChan = do
+  putStrLn "starting crawling thread"
   inQueue <- CStm.atomically $ CStm.newTQueue
   CStm.atomically $ CStm.writeTQueue inQueue (Job baseLink)
+  crawledPages <- Con.newMVar . DS.singleton . NU.uriPath . (\ (ST.Link _ _ v) -> v)  $ baseLink
   -- fork numThreds threds.
-  asyncWorks <- replicateM numThreads $ A.async $ scrappingThread (inQueue, outChan)
+  asyncWorks <- replicateM numThreads $ A.async $ scrappingThread (inQueue, outChan) crawledPages maxPagesToCrawl
   -- wait for all threads to finish
   mapM_ A.wait asyncWorks
 
@@ -40,21 +45,25 @@ crawlingThread ST.CrawlConfig{..} baseLink outChan = do
   Con.writeChan outChan ST.CrawlFinished
 
 --  puts Result on CrawlResult Channel
-scrappingThread :: (LinkQueue, ST.CrawlResultChan) -> IO ()
-scrappingThread chans@(inQueue, outChan) = do
+scrappingThread :: (LinkQueue, ST.CrawlResultChan) -> CrawledPages -> Int -> IO ()
+scrappingThread chans@(inQueue, outChan) crawledPages maxPagesToCrawl = do
   job <- CStm.atomically $ CStm.readTQueue inQueue
   case job of
     Job (ST.Link jobId depthRemaining linkUri) -> do
-      let link = NU.uriToString id linkUri $ ""
+      let link = NU.uriToString id linkUri ""
+      putStrLn . show $ ("parsing ", link)
       texts <- SP.scrapeURL link $ SP.texts SP.Any
       links <- SP.scrapeURL link $ SP.attrs "href" SP.Any
 
       let validLinks = catMaybes $ maybe [] (fmap $ validizeLink linkUri) links
-      let crawlResult = ST.CrawlResult jobId linkUri <$> texts
+          crawlResult = ST.CrawlResult jobId linkUri <$> texts
+
+      toCrawlLinks <- getToCrawlLinks crawledPages validLinks
+
       maybe (return ()) (Con.writeChan outChan) crawlResult
 
       when (depthRemaining > 0) $
-        CStm.atomically $ forM_ validLinks $ CStm.writeTQueue inQueue . Job . ST.Link jobId (depthRemaining - 1)
+        CStm.atomically $ forM_ toCrawlLinks $ CStm.writeTQueue inQueue . Job . ST.Link jobId (depthRemaining - 1)
       -- as consumers / scrappingThread are slow, queue emptiness means that we are done..
       emptyQueue <- CStm.atomically $ CStm.isEmptyTQueue inQueue
 
@@ -65,7 +74,7 @@ scrappingThread chans@(inQueue, outChan) = do
       -- tell other threads to stop as well
       if emptyQueue
       then CStm.atomically $ CStm.writeTQueue inQueue JobEnded
-      else scrappingThread chans
+      else scrappingThread chans crawledPages maxPagesToCrawl
 
     -- do not recurse
     JobEnded -> do
@@ -78,7 +87,7 @@ scrappingThread chans@(inQueue, outChan) = do
       if T.length newUrl > 0
       then let v = flip NU.relativeTo base <$> NU.parseURIReference (T.unpack newUrl)
                v2 = sameDomainURI (NU.uriAuthority base) v
-           in traceShow (v,v2) v2
+           in v2
       else Nothing
 
     sameDomainURI :: Maybe NU.URIAuth -> Maybe NU.URI -> Maybe NU.URI
@@ -89,6 +98,15 @@ scrappingThread chans@(inQueue, outChan) = do
       if NU.uriRegName baseUriRegName == NU.uriRegName auth
       then return uri
       else Nothing
+
+    getToCrawlLinks crawledPages validLinks = do
+      pages <- Con.readMVar crawledPages
+      if DS.size pages < maxPagesToCrawl
+      then Con.modifyMVar crawledPages $
+             (\ crawledLinks -> do
+                  let newToCrawlLinks = DL.filter (\vl -> DS.notMember (NU.uriPath vl) crawledLinks) validLinks
+                  return (DS.union crawledLinks (DS.fromList (fmap NU.uriPath newToCrawlLinks)), newToCrawlLinks))
+      else return []
 
 flushQueue :: CStm.TQueue a -> IO [a]
 flushQueue channel = CStm.atomically $ readAll channel
@@ -102,12 +120,12 @@ test :: IO ()
 test = do
   let uri = fromJust $ NU.parseURI "https://jaspervdj.be/hakyll/"
   chan <- Con.newChan
-  threadId <- Con.forkIO $ crawlingThread (ST.CrawlConfig 2) (ST.Link (ST.JobId 1) 1 uri) chan
+  threadId <- Con.forkIO $ crawlingThread (ST.CrawlConfig 2 20) (ST.Link (ST.JobId 1) 1 uri) chan
 
   fix $ \loop -> do
     m <- Con.readChan chan
     case m of
       ST.CrawlFinished -> return ()
-      ST.CrawlResult _ url _ -> (putStrLn $ NU.uriToString id url $ "") >> loop
+      ST.CrawlResult _ url _ -> (putStrLn $ NU.uriToString id url "") >> loop
 
   Con.killThread threadId

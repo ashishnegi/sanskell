@@ -6,6 +6,8 @@ import qualified Network.URI as NU (URI)
 import qualified Control.Concurrent as Con (Chan, MVar)
 import qualified Data.Text as T (Text)
 import qualified Data.Map as M
+import qualified Data.Aeson as A
+
 import GHC.Generics
 
 newtype JobId = JobId Int deriving (Eq, Ord, Show, Generic)
@@ -24,7 +26,8 @@ type CrawlResultChan = Con.Chan CrawlResult
 
 data CrawlConfig =
   CrawlConfig
-  { numThreads :: Int
+  { numThreads      :: Int
+  , maxPagesToCrawl :: Int
   }
 
 -- Words.hs
@@ -65,3 +68,9 @@ data JobStatus =
   , jobState     :: JobState
   }
   deriving (Eq, Show, Generic)
+
+instance A.ToJSON JobId
+instance A.ToJSON JobResult
+instance A.ToJSON JobStatus
+instance A.ToJSON JobState
+instance A.FromJSON JobPostBody

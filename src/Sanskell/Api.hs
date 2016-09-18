@@ -53,10 +53,5 @@ app server = S.serve jobApi (serverRouter server)
 instance S.FromHttpApiData ST.JobId where
   parseUrlPiece t = ST.JobId <$> S.parseUrlPiece t
 
-instance A.ToJSON ST.JobId
-instance A.ToJSON ST.JobResult
-instance A.ToJSON ST.JobStatus
-instance A.ToJSON ST.JobState
-instance A.FromJSON ST.JobPostBody
 
 -- $ curl -X POST -d '{"jobUrl":"http://www.google.com"}' -H 'Accept: application/json' -H 'Content-type: application/json' http://localhost:8034/job
