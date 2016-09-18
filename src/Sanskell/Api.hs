@@ -18,7 +18,7 @@ import qualified Control.Monad.IO.Class as CM
 
 import Debug.Trace
 
-type JobApi = "job" :> S.Capture "status" String :> S.Capture "id" ST.JobId :> S.Get '[S.JSON] ST.JobStatus
+type JobApi = "job" :> "status" :> S.Capture "id" ST.JobId :> S.Get '[S.JSON] ST.JobStatus
          :<|> "job" :> S.ReqBody '[S.JSON] ST.JobPostBody :> S.Post '[S.JSON] (Either T.Text ST.JobId)
          :<|> "job" :> S.Capture "id" ST.JobId :> S.Get '[S.JSON] ST.JobResult
 
@@ -40,8 +40,8 @@ serverRouter server = statusGet
     jobPost :: ST.JobPostBody -> S.Handler (Either T.Text ST.JobId)
     jobPost ST.JobPostBody{..} = traceShow jobUrl $ CM.liftIO $ SS.addJob server jobUrl
 
-    statusGet :: String -> ST.JobId -> S.Handler ST.JobStatus
-    statusGet _ jid = do
+    statusGet :: ST.JobId -> S.Handler ST.JobStatus
+    statusGet jid = do
       CM.liftIO $ putStrLn . show $ jid
       res <- CM.liftIO $ SS.jobStatus server jid
       case res of
