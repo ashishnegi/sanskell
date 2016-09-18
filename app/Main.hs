@@ -8,9 +8,11 @@ import qualified Data.Map as M
 
 start :: Warp.Port -> IO ()
 start port = do
-  pendingJobs <- Con.newMVar []
+  nextJobId   <- Con.newMVar (ST.JobId 1)
   jobResult   <- Con.newMVar M.empty
-  let server = ST.Server pendingJobs jobResult
+  jobChan     <- Con.newChan
+  
+  let server = ST.Server nextJobId jobResult jobChan
   Warp.run port (A.app server)
 
 main :: IO ()

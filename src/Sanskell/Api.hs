@@ -12,6 +12,7 @@ import qualified Data.Text as T
 import qualified Data.Map as M
 import qualified Sanskell.Types as ST
 import qualified Sanskell.Server as SS
+import qualified Control.Monad.IO.Class as CM
 
 import Debug.Trace
 
@@ -26,10 +27,10 @@ serverRouter server = jobGet
     S.:<|> jobPost
   where
     jobGet :: ST.JobId -> S.Handler (Maybe ST.JobResult)
-    jobGet id = return $ SS.jobResult server id
+    jobGet id = CM.liftIO $ SS.jobResult server id
 
     jobPost :: ST.JobPostBody -> S.Handler (Either T.Text ST.JobId)
-    jobPost ST.JobPostBody{..} = traceShow jobUrl $ return $ SS.addJob server jobUrl
+    jobPost ST.JobPostBody{..} = traceShow jobUrl $ CM.liftIO $ SS.addJob server jobUrl
 
 app :: ST.Server -> NW.Application
 app server = S.serve jobApi (serverRouter server)

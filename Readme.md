@@ -2,5 +2,5 @@
 
 
 # Todo
-1. Hook up Apis with Server - change server state.
+1. Makes a thread to read from channel and starts crawlingThread.
 2. Parsing page : currently 2 apis are being made.

@@ -8,7 +8,7 @@ import qualified Data.Text as T (Text)
 import qualified Data.Map as M
 import GHC.Generics
 
-newtype JobId = JobId Int deriving (Eq, Show, Generic)
+newtype JobId = JobId Int deriving (Eq, Ord, Show, Generic)
 
 type DepthRemaining = Int
 
@@ -47,6 +47,7 @@ type URL = String
 -- Server.hs
 data Server =
   Server
-  { pendingJobs :: Con.MVar [ (JobId, URL) ]
+  { nextJobId   :: Con.MVar JobId
   , jobResults  :: Con.MVar ( M.Map JobId JobResult )
+  , jobChan     :: Con.Chan ( JobId, String )
   }
