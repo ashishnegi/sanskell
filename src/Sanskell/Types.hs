@@ -3,7 +3,7 @@
 module Sanskell.Types where
 
 import qualified Network.URI as NU (URI)
-import qualified Control.Concurrent as Con (Chan)
+import qualified Control.Concurrent as Con (Chan, MVar)
 import qualified Data.Text as T (Text)
 import qualified Data.Map as M
 import GHC.Generics
@@ -27,6 +27,7 @@ data CrawlConfig =
   { numThreads :: Int
   }
 
+-- Words.hs
 data JobResult =
   JobResult
   { resultJobId :: JobId
@@ -34,8 +35,18 @@ data JobResult =
   }
   deriving (Eq, Show, Generic)
 
+-- Api.hs
 newtype JobPostBody =
   JobPostBody
-  { jobUrl :: T.Text
+  { jobUrl :: String
   }
   deriving (Eq, Show, Generic)
+
+type URL = String
+
+-- Server.hs
+data Server =
+  Server
+  { pendingJobs :: Con.MVar [ (JobId, URL) ]
+  , jobResults  :: Con.MVar ( M.Map JobId JobResult )
+  }

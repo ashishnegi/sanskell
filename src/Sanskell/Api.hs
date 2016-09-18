@@ -11,27 +11,28 @@ import qualified Data.Aeson as A
 import qualified Data.Text as T
 import qualified Data.Map as M
 import qualified Sanskell.Types as ST
+import qualified Sanskell.Server as SS
 
 import Debug.Trace
 
-type JobApi = "job" :> S.Capture "id" ST.JobId :> S.Get '[S.JSON] [ ST.JobResult ]
+type JobApi = "job" :> S.Capture "id" ST.JobId :> S.Get '[S.JSON] (Maybe ST.JobResult )
          :<|> "job" :> S.ReqBody '[S.JSON] ST.JobPostBody :> S.Post '[S.JSON] (Either T.Text ST.JobId)
 
 jobApi :: S.Proxy JobApi
 jobApi = S.Proxy
 
-server :: S.Server JobApi
-server = jobGet
+serverRouter :: ST.Server -> S.Server JobApi
+serverRouter server = jobGet
     S.:<|> jobPost
   where
-    jobGet :: ST.JobId -> S.Handler [ST.JobResult]
-    jobGet id = return [ ST.JobResult id M.empty ]
+    jobGet :: ST.JobId -> S.Handler (Maybe ST.JobResult)
+    jobGet id = return $ SS.jobResult server id
 
     jobPost :: ST.JobPostBody -> S.Handler (Either T.Text ST.JobId)
-    jobPost ST.JobPostBody{..} = traceShow jobUrl $ return . Right . ST.JobId $ 1
+    jobPost ST.JobPostBody{..} = traceShow jobUrl $ return $ SS.addJob server jobUrl
 
-app :: NW.Application
-app = S.serve jobApi server
+app :: ST.Server -> NW.Application
+app server = S.serve jobApi (serverRouter server)
 
 instance S.FromHttpApiData ST.JobId where
   parseUrlPiece t = ST.JobId <$> S.parseUrlPiece t
