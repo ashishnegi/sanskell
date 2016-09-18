@@ -74,4 +74,4 @@ jobStatus ST.Server{..} jobId = do
 
 
 mkJobUrl :: ST.JobId -> String
-mkJobUrl jobId = "http://localhost:8083/job/" ++ (show jobId)
+mkJobUrl (ST.JobId jobId) = "http://localhost:8083/job/" ++ (show jobId)

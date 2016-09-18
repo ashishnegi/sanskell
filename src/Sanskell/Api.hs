@@ -18,17 +18,17 @@ import qualified Control.Monad.IO.Class as CM
 
 import Debug.Trace
 
-type JobApi = "job" :> S.Capture "id" ST.JobId :> S.Get '[S.JSON] ST.JobResult
+type JobApi = "job" :> S.Capture "status" String :> S.Capture "id" ST.JobId :> S.Get '[S.JSON] ST.JobStatus
          :<|> "job" :> S.ReqBody '[S.JSON] ST.JobPostBody :> S.Post '[S.JSON] (Either T.Text ST.JobId)
-         :<|> "job/status" :> S.Capture "id" ST.JobId :> S.Get '[S.JSON] ST.JobStatus
+         :<|> "job" :> S.Capture "id" ST.JobId :> S.Get '[S.JSON] ST.JobResult
 
 jobApi :: S.Proxy JobApi
 jobApi = S.Proxy
 
 serverRouter :: ST.Server -> S.Server JobApi
-serverRouter server = jobGet
+serverRouter server = statusGet
     S.:<|> jobPost
-    S.:<|> statusGet
+    S.:<|> jobGet
   where
     jobGet :: ST.JobId -> S.Handler ST.JobResult
     jobGet jid = do
@@ -40,8 +40,9 @@ serverRouter server = jobGet
     jobPost :: ST.JobPostBody -> S.Handler (Either T.Text ST.JobId)
     jobPost ST.JobPostBody{..} = traceShow jobUrl $ CM.liftIO $ SS.addJob server jobUrl
 
-    statusGet :: ST.JobId -> S.Handler ST.JobStatus
-    statusGet jid = do
+    statusGet :: String -> ST.JobId -> S.Handler ST.JobStatus
+    statusGet _ jid = do
+      CM.liftIO $ putStrLn . show $ jid
       res <- CM.liftIO $ SS.jobStatus server jid
       case res of
         Left e -> S.throwError e
