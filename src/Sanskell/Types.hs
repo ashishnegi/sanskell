@@ -33,3 +33,9 @@ data JobResult =
   , wordsCount  :: M.Map T.Text Integer
   }
   deriving (Eq, Show, Generic)
+
+newtype JobPostBody =
+  JobPostBody
+  { jobUrl :: T.Text
+  }
+  deriving (Eq, Show, Generic)
