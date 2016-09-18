@@ -10,16 +10,16 @@ import qualified Data.Foldable as DF
 import qualified Data.Char as DC
 
 
-wordCloudOfWebsite :: String -> ST.JobId -> IO (Either String (M.Map T.Text Integer))
+wordCloudOfWebsite :: String -> ST.JobId -> IO (Either T.Text (M.Map T.Text Integer))
 wordCloudOfWebsite url jobId = do
   texts <- textsOnWebsite url jobId
   return $ wordCount <$> texts
 
-textsOnWebsite :: String -> ST.JobId -> IO (Either String [ T.Text ])
+textsOnWebsite :: String -> ST.JobId -> IO (Either T.Text [ T.Text ])
 textsOnWebsite url jobId = do
   let parsedUri = NU.parseURI url
 
-  maybe (return $ Left "Parsing of url failed") (\ uri -> do
+  maybe (return . Left . T.pack $ "Parsing of url failed") (\ uri -> do
       let config = ST.CrawlConfig 3
           link = ST.Link jobId 3 uri
 

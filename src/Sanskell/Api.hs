@@ -16,7 +16,7 @@ import qualified Control.Monad.IO.Class as CM
 
 import Debug.Trace
 
-type JobApi = "job" :> S.Capture "id" ST.JobId :> S.Get '[S.JSON] (Maybe ST.JobResult )
+type JobApi = "job" :> S.Capture "id" ST.JobId :> S.Get '[S.JSON] (Either T.Text ST.JobResult )
          :<|> "job" :> S.ReqBody '[S.JSON] ST.JobPostBody :> S.Post '[S.JSON] (Either T.Text ST.JobId)
 
 jobApi :: S.Proxy JobApi
@@ -26,7 +26,7 @@ serverRouter :: ST.Server -> S.Server JobApi
 serverRouter server = jobGet
     S.:<|> jobPost
   where
-    jobGet :: ST.JobId -> S.Handler (Maybe ST.JobResult)
+    jobGet :: ST.JobId -> S.Handler (Either T.Text ST.JobResult)
     jobGet id = CM.liftIO $ SS.jobResult server id
 
     jobPost :: ST.JobPostBody -> S.Handler (Either T.Text ST.JobId)

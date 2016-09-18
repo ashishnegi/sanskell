@@ -31,6 +31,7 @@ data CrawlConfig =
 data JobResult =
   JobResult
   { resultJobId :: JobId
+  -- , should have job start/finish time
   , wordsCount  :: M.Map T.Text Integer
   }
   deriving (Eq, Show, Generic)
@@ -48,6 +49,6 @@ type URL = String
 data Server =
   Server
   { nextJobId   :: Con.MVar JobId
-  , jobResults  :: Con.MVar ( M.Map JobId JobResult )
+  , jobResults  :: Con.MVar ( M.Map JobId (Either T.Text JobResult))
   , jobChan     :: Con.Chan ( JobId, String )
   }
