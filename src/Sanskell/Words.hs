@@ -30,19 +30,18 @@ textsOnWebsite url jobId = do
       crawlingThread <- Con.forkIO $ SC.crawlingThread config link crawlResultChan
 
       traceShow ("processing ", uri, jobId) $ return ()
-      allTexts <- foldr (joinAllTexts crawlResultChan) (return []) [1..]
+      allTexts <- joinAllTexts crawlResultChan []
       Con.killThread crawlingThread
       return $ Right allTexts)
     parsedUri
 
   where
-    joinAllTexts crawlResultChan _ t = do
-      texts <- t
+    joinAllTexts crawlResultChan t = do
       m <- Con.readChan crawlResultChan
       traceShow "getting msgs " $ return ()
       case m of
-        ST.CrawlFinished -> traceShow "getting crawl finished.. " $ return texts
-        ST.CrawlResult _ _ text -> traceShow "getting crawlResult.. " $ return $ (T.concat text) : texts
+        ST.CrawlFinished -> return t
+        ST.CrawlResult _ _ text -> joinAllTexts crawlResultChan $ (T.concat text) : t
 
 wordCount :: [ T.Text ] -> M.Map T.Text Integer
 wordCount texts = DF.foldl' countWords M.empty texts
