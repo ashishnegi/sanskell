@@ -6,7 +6,8 @@ import qualified Data.Text as T
 import qualified Control.Concurrent as Con
 import qualified Data.Map as M
 import qualified Control.Monad as CM (forever, void)
-
+import qualified Servant as S
+import qualified Data.List as DL
 import qualified Sanskell.Types as ST
 import qualified Sanskell.Words as SW
 
@@ -18,6 +19,8 @@ startServer ST.Server{..} = do
     wordMap <- SW.wordCloudOfWebsite url jobId
     let jobRes = ST.JobResult jobId <$> wordMap
     Con.modifyMVar_ jobResults (\m -> return . M.insertWith changeResult jobId jobRes $ m)
+    -- remove from pending request
+    Con.modifyMVar_ pendingJobs (return . DL.delete jobId)
   where
     changeResult v1 v2 = case (v1, v2) of
        -- do not update if v2 failed.
@@ -29,11 +32,13 @@ addJob ST.Server{..} url = do
   let parsedUri = NU.parseURI url
   maybe (return . Left . T.pack $ "Bad url")
     (\ _ -> do
+        jid <- Con.modifyMVar nextJobId $ \ (ST.JobId jid) -> return . (\a -> (a,a)) $ ST.JobId (jid + 1)
+        -- add to pending list
+        Con.modifyMVar_ pendingJobs (return . (:) jid)
         -- put on a channel that would be read sequentially..
-        id <- Con.modifyMVar nextJobId $ \ (ST.JobId jid) -> return . (\a -> (a,a)) $ ST.JobId (jid + 1)
         -- should be passing parsedUri => Just uri
-        Con.writeChan jobChan ( id, url )
-        return $ Right id)
+        Con.writeChan jobChan ( jid, url )
+        return $ Right jid)
     parsedUri
 
 jobResult :: ST.Server -> ST.JobId -> IO (Either T.Text ST.JobResult)
@@ -41,5 +46,32 @@ jobResult ST.Server{..} jobId = do
   results <- Con.readMVar jobResults
   let v = M.lookup jobId results
   case v of
-    Nothing -> return . Left . T.pack $ "Wrong Id"
+    Nothing -> return . Left . T.pack $ "No such url exists."
     Just v' -> return v'
+
+jobStatus :: ST.Server -> ST.JobId -> IO (Either S.ServantErr ST.JobStatus)
+jobStatus ST.Server{..} jobId = do
+  pJobs <- Con.readMVar pendingJobs
+  let pJob = DL.find (== jobId) pJobs
+  case pJob of
+    -- in pending list..
+    Just _ -> return . Right $ ST.JobStatus jobId (Left . T.pack $ "Request pending") ST.Pending
+
+    -- not in pending list
+    Nothing -> do
+      completedJobs <- Con.readMVar jobResults
+      let job = M.lookup jobId completedJobs
+      case job of
+        -- not in completed list either
+        Nothing -> return . Left $ S.err404
+        -- in completed list.
+        Just j' ->
+          case j' of
+            -- failed to complete..
+            Left err -> return . Right $ ST.JobStatus jobId (Left err) ST.Finished
+            -- job finished successfully..
+            Right _   -> return . Right $ ST.JobStatus jobId (Right (mkJobUrl jobId)) ST.Finished
+
+
+mkJobUrl :: ST.JobId -> String
+mkJobUrl jobId = "http://localhost:8083/job/" ++ (show jobId)

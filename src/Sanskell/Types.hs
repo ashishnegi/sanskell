@@ -50,5 +50,18 @@ data Server =
   Server
   { nextJobId   :: Con.MVar JobId
   , jobResults  :: Con.MVar ( M.Map JobId (Either T.Text JobResult))
+  , pendingJobs :: Con.MVar [ JobId ]
   , jobChan     :: Con.Chan ( JobId, String )
   }
+
+data JobState = Pending | Finished deriving (Eq, Show, Generic)
+type Error = T.Text
+
+data JobStatus =
+  JobStatus
+  { statusJobId  :: JobId
+  -- , should have job start/finish time
+  , jobResultUrl :: Either Error URL
+  , jobState     :: JobState
+  }
+  deriving (Eq, Show, Generic)

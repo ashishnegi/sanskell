@@ -12,9 +12,10 @@ start :: Warp.Port -> IO ()
 start port = do
   nextJobId   <- Con.newMVar (ST.JobId 1)
   jobResult   <- Con.newMVar M.empty
+  pendingJobs <- Con.newMVar []
   jobChan     <- Con.newChan
 
-  let server = ST.Server nextJobId jobResult jobChan
+  let server = ST.Server nextJobId jobResult pendingJobs jobChan
   SS.startServer server
 
   Warp.run port (A.app server)
