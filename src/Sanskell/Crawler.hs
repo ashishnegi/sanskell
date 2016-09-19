@@ -10,6 +10,7 @@ import qualified Data.Text as T
 import qualified Data.Set as DS
 import qualified Text.HTML.Scalpel as SP
 import qualified Data.List as DL
+import qualified System.FilePath.Posix as SFP
 
 import Data.Maybe (catMaybes, fromJust)
 import Control.Monad (forM_, when, replicateM)
@@ -85,9 +86,12 @@ scrappingThread chans@(inQueue, outChan) crawledPages maxPagesToCrawl = do
     validizeLink :: NU.URI -> T.Text -> Maybe NU.URI
     validizeLink base newUrl =
       if T.length newUrl > 0
-      then let v = flip NU.relativeTo base <$> NU.parseURIReference (T.unpack newUrl)
-               v2 = sameDomainURI (NU.uriAuthority base) v
-           in v2
+      then let url = NU.parseURIReference (T.unpack newUrl)
+               htmlPage = isHtmlPage (NU.uriPath <$> url)
+           in if htmlPage
+              then let v  = flip NU.relativeTo base <$> url
+                   in sameDomainURI (NU.uriAuthority base) v
+              else Nothing
       else Nothing
 
     sameDomainURI :: Maybe NU.URIAuth -> Maybe NU.URI -> Maybe NU.URI
@@ -108,6 +112,9 @@ scrappingThread chans@(inQueue, outChan) crawledPages maxPagesToCrawl = do
                         newToCrawlLinksInLimit = take (maxPagesToCrawl - DS.size crawledLinks) newToCrawlLinks
                     return (DS.union crawledLinks (DS.fromList (fmap NU.uriPath newToCrawlLinksInLimit)), newToCrawlLinksInLimit)
                   else return (crawledLinks, []))
+
+    isHtmlPage :: Maybe String -> Bool
+    isHtmlPage s = maybe False ((\e -> (e == "") || (e == ".html")) . SFP.takeExtension) s
 
 flushQueue :: CStm.TQueue a -> IO [a]
 flushQueue channel = CStm.atomically $ readAll channel
