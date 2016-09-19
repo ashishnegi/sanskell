@@ -21,7 +21,7 @@ textsOnWebsite url jobId = do
   let parsedUri = NU.parseURI url
 
   maybe (return . Left . T.pack $ "Parsing of url failed") (\ uri -> do
-      let levelsDeep = 2
+      let levelsDeep = 1
           maxPagesToCrawl = 10
           config = ST.CrawlConfig levelsDeep maxPagesToCrawl
           link = ST.Link jobId 3 uri
@@ -47,5 +47,11 @@ wordCount :: [ T.Text ] -> M.Map T.Text Integer
 wordCount texts = DF.foldl' countWords M.empty texts
   where
     countWords m text =
-      let words = T.split DC.isSeparator text
-      in DF.foldl' (\m' word -> M.insertWith (+) word 1 m') m words
+      let splittedWords = T.split isSeparator text
+      in DF.foldl' (\m' word -> M.insertWith (+) word 1 m') m splittedWords
+
+    isSeparator c = DC.isSeparator c   ||
+                    DC.isSymbol c      ||
+                    DC.isPunctuation c ||
+                    c == '\n'          ||
+                    c == '\r'

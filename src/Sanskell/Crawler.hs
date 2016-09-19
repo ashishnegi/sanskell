@@ -52,13 +52,13 @@ scrappingThread chans@(inQueue, outChan) crawledPages maxPagesToCrawl = do
     Job (ST.Link jobId depthRemaining linkUri) -> do
       let link = NU.uriToString id linkUri ""
       putStrLn . show $ ("parsing ", link)
-      texts <- SP.scrapeURL link $ SP.texts SP.Any
-      links <- SP.scrapeURL link $ SP.attrs "href" SP.Any
+      let textAndLinksScrapper = pure (,) <*> SP.innerHTMLs SP.Any <*> SP.attrs "href" SP.Any
+      scrapResult <- SP.scrapeURL link textAndLinksScrapper
 
-      let validLinks = catMaybes $ maybe [] (fmap $ validizeLink linkUri) links
-          crawlResult = ST.CrawlResult jobId linkUri <$> texts
+      let validLinks = catMaybes $ maybe [] (fmap (validizeLink linkUri) . snd) scrapResult
+          crawlResult = ST.CrawlResult jobId linkUri . fst <$> scrapResult
 
-      toCrawlLinks <- getToCrawlLinks crawledPages validLinks
+      toCrawlLinks <- getToCrawlLinks validLinks
 
       maybe (return ()) (Con.writeChan outChan) crawlResult
 
@@ -99,7 +99,7 @@ scrappingThread chans@(inQueue, outChan) crawledPages maxPagesToCrawl = do
       then return uri
       else Nothing
 
-    getToCrawlLinks crawledPages validLinks = do
+    getToCrawlLinks validLinks = do
       Con.modifyMVar crawledPages $
              (\ crawledLinks -> do
                   if DS.size crawledLinks < maxPagesToCrawl

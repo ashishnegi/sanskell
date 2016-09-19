@@ -2,8 +2,7 @@
 
 
 # Todo
-1. Parsing page : currently 2 apis are being made.
-*. Remove non-html pages from crawling.
+1. Remove non-html pages from crawling.
 2. Elm UI
 3. Have job start/finish time in JobResult.
 4. For fair policy --
