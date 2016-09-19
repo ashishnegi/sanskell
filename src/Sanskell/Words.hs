@@ -21,10 +21,11 @@ textsOnWebsite url jobId = do
   let parsedUri = NU.parseURI url
 
   maybe (return . Left . T.pack $ "Parsing of url failed") (\ uri -> do
-      let levelsDeep = 1
+      let numThreads = 2
           maxPagesToCrawl = 10
-          config = ST.CrawlConfig levelsDeep maxPagesToCrawl
-          link = ST.Link jobId 3 uri
+          config = ST.CrawlConfig numThreads maxPagesToCrawl
+          depthOfCrawl = 3
+          link = ST.Link jobId depthOfCrawl uri
 
       crawlResultChan <- Con.newChan
       crawlingThread <- Con.forkIO $ SC.crawlingThread config link crawlResultChan
@@ -54,4 +55,5 @@ wordCount texts = DF.foldl' countWords M.empty texts
                     DC.isSymbol c      ||
                     DC.isPunctuation c ||
                     c == '\n'          ||
-                    c == '\r'
+                    c == '\r'          ||
+                    (c >= '0' && c <= 'z')
