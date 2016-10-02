@@ -2,6 +2,7 @@
 
 
 # Todo
+*. Manually correct Api.elm
 *. Elm-export types for Sum types : https://github.com/krisajenkins/elm-export/issues/6
 1. Elm UI
 2. Have timeout for "crawling thread" in case it never returns..

@@ -9,7 +9,7 @@ import Task
 
 
 type JobId
-  = JobId  : Int
+  = JobId Int
 
 type alias JobStatus =
   { statusJobId : JobId
@@ -18,7 +18,7 @@ type alias JobStatus =
   }
 
 type Message
-  = Message  : String
+  = Message String
 
 type JobState
   = Pending
@@ -32,8 +32,8 @@ decodeJobStatus =
     |: ("jobState" := decodeJobState)
 
 decodeJobId : Json.Decode.Decoder JobId
-decodeJobId =
-<Constructor "JobId" (Selector "" (Field (Primitive "Int")))>
+decodeJobId = Json.Decode.succeed JobId
+
 
 decodeMessage : Json.Decode.Decoder Message
 decodeMessage =
