@@ -10,4 +10,4 @@ main = do
         "module Api exposing (..)" :
         defElmImports :
         generateElmForAPI Api.jobApi
-  writeFile "ui/Api.elm" code
+  writeFile "ui/src/Api.elm" code

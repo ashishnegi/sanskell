@@ -4,6 +4,7 @@ import Html exposing (Html, div, text, button)
 import Html.Events exposing (onClick, onInput)
 import Html.Attributes exposing (placeholder, class)
 import Html.App as App
+import Api as Api
 
 type alias URL = String
 type StatusMsg = NoStatus

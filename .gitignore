@@ -1,4 +1,4 @@
 .stack-work/*
 ui/elm-stuff
-ui/Api.elm
+ui/src/Api.elm
 assets
