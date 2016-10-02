@@ -28,6 +28,8 @@ library
                      , async
                      , containers
                      , servant-server
+                     , servant-elm
+                     , elm-export
                      , wai
                      , aeson
                      , transformers

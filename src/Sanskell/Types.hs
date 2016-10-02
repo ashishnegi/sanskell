@@ -46,7 +46,7 @@ newtype JobPostBody =
   }
   deriving (Eq, Show, Generic)
 
-type URL = String
+newtype URL = URL String deriving (Eq, Show, Generic)
 
 -- Server.hs
 data Server =
@@ -58,7 +58,7 @@ data Server =
   }
 
 data JobState = Pending | Finished deriving (Eq, Show, Generic)
-type Error = T.Text
+newtype Error = Error T.Text deriving (Eq, Show, Generic)
 
 data JobStatus =
   JobStatus
@@ -71,6 +71,8 @@ data JobStatus =
 
 instance A.ToJSON JobId
 instance A.ToJSON JobResult
+instance A.ToJSON Error
+instance A.ToJSON URL
 instance A.ToJSON JobStatus
 instance A.ToJSON JobState
 instance A.FromJSON JobPostBody
