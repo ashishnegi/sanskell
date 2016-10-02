@@ -1,4 +1,6 @@
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE OverloadedStrings #-}
+
 module Sanskell.Server where
 
 import qualified Network.URI as NU
@@ -30,7 +32,7 @@ startServer ST.Server{..} = do
 addJob :: ST.Server -> String -> IO (Either S.ServantErr ST.JobId)
 addJob ST.Server{..} url = do
   let parsedUri = NU.parseURI url
-  maybe (return . Left $ S.err404 ) -- better msg
+  maybe (return . Left $ (S.err400 { S.errBody = "Bad Url" }))
     (\ _ -> do
         jid <- Con.modifyMVar nextJobId $ \ (ST.JobId jid) -> return . (\a -> (a,a)) $ ST.JobId (jid + 1)
         -- add to pending list
@@ -55,7 +57,7 @@ jobStatus ST.Server{..} jobId = do
   let pJob = DL.find (== jobId) pJobs
   case pJob of
     -- in pending list..
-    Just _ -> return . Right $ ST.JobStatus jobId (Left . ST.Error . T.pack $ "Request pending") ST.Pending
+    Just _ -> return . Right $ ST.JobStatus jobId (ST.Message "Request pending") ST.Pending
 
     -- not in pending list
     Nothing -> do
@@ -68,10 +70,10 @@ jobStatus ST.Server{..} jobId = do
         Just j' ->
           case j' of
             -- failed to complete..
-            Left err -> return . Right $ ST.JobStatus jobId (Left . ST.Error $ err) ST.Finished
+            Left err -> return . Right $ ST.JobStatus jobId (ST.Message . T.unpack $ err) ST.Finished
             -- job finished successfully..
-            Right _   -> return . Right $ ST.JobStatus jobId (Right (mkJobUrl jobId)) ST.Finished
+            Right _   -> return . Right $ ST.JobStatus jobId (ST.Message (mkJobUrl jobId)) ST.Finished
 
 
-mkJobUrl :: ST.JobId -> ST.URL
-mkJobUrl (ST.JobId jobId) = ST.URL $ "http://localhost:8083/job/" ++ (show jobId)
+mkJobUrl :: ST.JobId -> String
+mkJobUrl (ST.JobId jobId) = "http://localhost:8083/job/" ++ (show jobId)

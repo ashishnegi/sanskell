@@ -1,17 +1,15 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Sanskell.Api (app, jobApi) where
 
 import qualified Network.Wai as NW
 import qualified Servant as S
 import Servant ((:>), (:<|>))
-import qualified Data.Aeson as A
-import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Encoding as TLE
-import qualified Data.Map as M
 import qualified Sanskell.Types as ST
 import qualified Sanskell.Server as SS
 import qualified Control.Monad.IO.Class as CM
@@ -64,14 +62,15 @@ instance S.FromHttpApiData ST.JobId where
 
 instance SElm.ElmType ST.JobId
 instance SElm.ElmType ST.JobStatus
+instance SElm.ElmType ST.Message
 instance SElm.ElmType ST.Error
 instance SElm.ElmType ST.URL
 instance SElm.ElmType ST.JobState
 instance SElm.ElmType ST.JobPostBody
 instance SElm.ElmType ST.JobResult
-instance (SElm.ElmType a, SElm.ElmType b) => SElm.ElmType (Either a b) where
-  toElmType eab = case eab of
-    Left a -> Elm.Product (Elm.Primitive "Left") (Elm.toElmType a)
-    Right b -> Elm.Product (Elm.Primitive "Right") (Elm.toElmType b)
+-- instance (SElm.ElmType a, SElm.ElmType b) => SElm.ElmType (Either a b) where
+--   toElmType eab = case eab of
+--     Left a -> Elm.Product (Elm.Primitive "Left") (Elm.toElmType a)
+--     Right b -> Elm.Product (Elm.Primitive "Right") (Elm.toElmType b)
 
 -- $ curl -X POST -d '{"jobUrl":"http://www.google.com"}' -H 'Accept: application/json' -H 'Content-type: application/json' http://localhost:8034/job

@@ -60,11 +60,12 @@ data Server =
 data JobState = Pending | Finished deriving (Eq, Show, Generic)
 newtype Error = Error T.Text deriving (Eq, Show, Generic)
 
+newtype Message = Message String deriving (Eq, Show, Generic)
 data JobStatus =
   JobStatus
   { statusJobId  :: JobId
   -- , should have job start/finish time
-  , jobResultUrl :: Either Error URL
+  , jobResult    :: Message
   , jobState     :: JobState
   }
   deriving (Eq, Show, Generic)
@@ -73,6 +74,7 @@ instance A.ToJSON JobId
 instance A.ToJSON JobResult
 instance A.ToJSON Error
 instance A.ToJSON URL
+instance A.ToJSON Message
 instance A.ToJSON JobStatus
 instance A.ToJSON JobState
 instance A.FromJSON JobPostBody

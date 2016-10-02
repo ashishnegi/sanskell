@@ -1,6 +1,6 @@
 ../assets/index.html: Api.elm
 	echo "in ../assets/index.html : doing elm make Main.elm"
-	elm make Main.elm
+	elm make src/Main.elm
 	mv index.html ../assets/
 
 Api.elm: GenerateElm.hs ../src/Sanskell/Api.hs
