@@ -6,7 +6,7 @@ import Json.Encode
 import Http
 import String
 import Task
-
+import Dict exposing (Dict, fromList)
 
 type JobId
   = JobId Int
@@ -32,16 +32,17 @@ decodeJobStatus =
     |: ("jobState" := decodeJobState)
 
 decodeJobId : Json.Decode.Decoder JobId
-decodeJobId = Json.Decode.succeed JobId
-
+decodeJobId = Json.Decode.map JobId Json.Decode.int
 
 decodeMessage : Json.Decode.Decoder Message
-decodeMessage =
-<Constructor "Message" (Selector "" (Field (Product (Primitive "List") (Primitive "Char"))))>
+decodeMessage = Json.Decode.object1 Message ("msg" := Json.Decode.string)
 
 decodeJobState : Json.Decode.Decoder JobState
-decodeJobState =
-<Sum (Constructor "Pending" Unit) (Constructor "Finished" Unit)>
+decodeJobState = Json.Decode.string `Json.Decode.andThen`
+                 (\v -> case v of
+                            "Pending" -> Json.Decode.succeed Pending
+                            "Finished" -> Json.Decode.succeed Finished
+                            _          -> Json.Decode.fail "Unknown jobstate")
 
 getJobStatusById : JobId -> Task.Task Http.Error (JobStatus)
 getJobStatusById id =
@@ -93,7 +94,7 @@ postJob body =
 
 type alias JobResult =
   { resultJobId : JobId
-  , wordsCount : Dict String Int
+  , wordsCount  : Dict String Int
   }
 
 decodeJobResult : Json.Decode.Decoder JobResult

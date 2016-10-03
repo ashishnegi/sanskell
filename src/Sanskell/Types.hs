@@ -1,4 +1,5 @@
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Sanskell.Types where
 
@@ -7,6 +8,7 @@ import qualified Control.Concurrent as Con (Chan, MVar)
 import qualified Data.Text as T (Text)
 import qualified Data.Map as M
 import qualified Data.Aeson as A
+import Data.Aeson.Types ((.=))
 
 import GHC.Generics
 
@@ -70,11 +72,15 @@ data JobStatus =
   }
   deriving (Eq, Show, Generic)
 
-instance A.ToJSON JobId
+instance A.ToJSON JobId where
+  toJSON (JobId jId) = A.Number . fromInteger . toInteger $ jId
+
 instance A.ToJSON JobResult
 instance A.ToJSON Error
 instance A.ToJSON URL
-instance A.ToJSON Message
+instance A.ToJSON Message where
+  toJSON (Message msg) = A.object [ "msg" .= msg ]
+
 instance A.ToJSON JobStatus
 instance A.ToJSON JobState
 instance A.FromJSON JobPostBody
