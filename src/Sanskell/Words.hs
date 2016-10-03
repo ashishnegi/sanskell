@@ -22,7 +22,7 @@ textsOnWebsite url jobId = do
 
   maybe (return . Left . T.pack $ "Parsing of url failed") (\ uri -> do
       let numThreads = 2
-          maxPagesToCrawl = 10
+          maxPagesToCrawl = 1
           config = ST.CrawlConfig numThreads maxPagesToCrawl
           depthOfCrawl = 3
           link = ST.Link jobId depthOfCrawl uri
@@ -32,6 +32,7 @@ textsOnWebsite url jobId = do
 
       traceShow ("processing ", uri, jobId) $ return ()
       allTexts <- joinAllTexts crawlResultChan []
+      traceShow ("allDone", uri, jobId) $ return ()
       Con.killThread crawlingThread
       return $ Right allTexts)
     parsedUri

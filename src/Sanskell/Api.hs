@@ -61,7 +61,8 @@ app :: NW.Application -> NW.Application -> NW.Application
 app staticApp apiApp req respond =
   staticApp req (\ response ->
                   do
-                    if (Status.statusCode . NW.responseStatus $ response) < 300
+                    let status = Status.statusCode . NW.responseStatus $ response
+                    if (traceShow status status) < 400
                     then respond response
                     else apiApp req respond)
 

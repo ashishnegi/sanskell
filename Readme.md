@@ -2,7 +2,7 @@
 
 
 # Todo
-*. Manually correct Api.elm
+*. POST api not returning anything.
 *. Elm-export types for Sum types : https://github.com/krisajenkins/elm-export/issues/6
 1. Elm UI
 2. Have timeout for "crawling thread" in case it never returns..

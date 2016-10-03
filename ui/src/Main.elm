@@ -33,9 +33,9 @@ update msg model =
         SendJob ->
             ( model, Task.perform SendJobFailed SendJobSuccess (Api.postJob (Api.JobPostBody model.websiteUrl)) ) -- send http job
         SendJobSuccess _ ->
-            ( model, Cmd.none ) -- add job success message
+            ( { model | statusMessage = JobSuccessStatus "Success" "url" }, Cmd.none ) -- add job success message
         SendJobFailed _ ->
-            ( model, Cmd.none ) -- add job post failure message
+            ( { model | statusMessage = JobFailureStatus "failure" }, Cmd.none ) -- add job post failure message
 
 view : Model -> Html Msg
 view model =
