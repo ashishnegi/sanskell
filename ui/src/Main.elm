@@ -4,6 +4,9 @@ import Html exposing (Html, div, text, button)
 import Html.Events exposing (onClick, onInput)
 import Html.Attributes exposing (placeholder, class)
 import Html.App as App
+import Api as Api
+import Task
+import Http
 
 type alias URL = String
 type StatusMsg = NoStatus
@@ -16,8 +19,8 @@ type alias Model = { websiteUrl : URL
 
 type Msg = WebsiteInput URL
          | SendJob
-         | SendJobSuccess
-         | SendJobFailed
+         | SendJobSuccess Api.JobId
+         | SendJobFailed Http.Error
 
 init : ( Model, Cmd Msg)
 init = ( Model "" NoStatus, Cmd.none )
@@ -28,10 +31,10 @@ update msg model =
         WebsiteInput url ->
             ( { model | websiteUrl = url }, Cmd.none )
         SendJob ->
-            ( model, Cmd.none ) -- send http job
-        SendJobSuccess ->
+            ( model, Task.perform SendJobFailed SendJobSuccess (Api.postJob (Api.JobPostBody model.websiteUrl)) ) -- send http job
+        SendJobSuccess _ ->
             ( model, Cmd.none ) -- add job success message
-        SendJobFailed ->
+        SendJobFailed _ ->
             ( model, Cmd.none ) -- add job post failure message
 
 view : Model -> Html Msg
