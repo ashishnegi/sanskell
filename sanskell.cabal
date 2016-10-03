@@ -31,6 +31,8 @@ library
                      , servant-elm
                      , elm-export
                      , wai
+                     , wai-app-static
+                     , http-types
                      , aeson
                      , transformers
                      , filepath

@@ -3,6 +3,9 @@
 
 module Sanskell.Server where
 
+import qualified Network.Wai.Application.Static as Static
+import qualified Network.Wai
+
 import qualified Network.URI as NU
 import qualified Data.Text as T
 import qualified Control.Concurrent as Con
@@ -28,6 +31,9 @@ startServer ST.Server{..} = do
        -- do not update if v2 failed.
       (Right _, Left _) -> v1
       _                 -> v2
+
+staticApp :: Network.Wai.Application
+staticApp = Static.staticApp . Static.defaultWebAppSettings $ "assets"
 
 addJob :: ST.Server -> String -> IO (Either S.ServantErr ST.JobId)
 addJob ST.Server{..} url = do

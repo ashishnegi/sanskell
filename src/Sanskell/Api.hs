@@ -3,7 +3,7 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module Sanskell.Api (app, jobApi) where
+module Sanskell.Api (app, jobApi, apiApplication) where
 
 import qualified Network.Wai as NW
 import qualified Servant as S
@@ -13,7 +13,7 @@ import qualified Data.Text.Lazy.Encoding as TLE
 import qualified Sanskell.Types as ST
 import qualified Sanskell.Server as SS
 import qualified Control.Monad.IO.Class as CM
-
+import qualified Network.HTTP.Types.Status as Status
 import qualified Servant.Elm as SElm
 import qualified Elm as Elm
 
@@ -54,8 +54,16 @@ serverRouter server = statusGet
         Left e -> S.throwError e
         Right v -> return v
 
-app :: ST.Server -> NW.Application
-app server = S.serve jobApi (serverRouter server)
+apiApplication :: ST.Server -> NW.Application
+apiApplication server = S.serve jobApi (serverRouter server)
+
+app :: NW.Application -> NW.Application -> NW.Application
+app staticApp apiApp req respond =
+  staticApp req (\ response ->
+                  do
+                    if (Status.statusCode . NW.responseStatus $ response) < 300
+                    then respond response
+                    else apiApp req respond)
 
 instance S.FromHttpApiData ST.JobId where
   parseUrlPiece t = ST.JobId <$> S.parseUrlPiece t
