@@ -63,7 +63,7 @@ jobStatus ST.Server{..} jobId = do
   let pJob = DL.find (== jobId) pJobs
   case pJob of
     -- in pending list..
-    Just _ -> return . Right $ ST.JobStatus jobId (ST.Message "Request pending") ST.Pending
+    Just _ -> return . Right $ ST.JobStatus jobId (ST.Message (mkJobStatusUrl jobId)) ST.Pending
 
     -- not in pending list
     Nothing -> do
@@ -76,10 +76,13 @@ jobStatus ST.Server{..} jobId = do
         Just j' ->
           case j' of
             -- failed to complete..
-            Left err -> return . Right $ ST.JobStatus jobId (ST.Message . T.unpack $ err) ST.Finished
+            Left err -> return . Right $ ST.JobStatus jobId (ST.Message . T.unpack $ err) ST.Failed
             -- job finished successfully..
             Right _   -> return . Right $ ST.JobStatus jobId (ST.Message (mkJobUrl jobId)) ST.Finished
 
 
 mkJobUrl :: ST.JobId -> String
-mkJobUrl (ST.JobId jobId) = "http://localhost:8083/job/" ++ (show jobId)
+mkJobUrl (ST.JobId jobId) = "http://localhost:8034/job/" ++ (show jobId)
+
+mkJobStatusUrl :: ST.JobId -> String
+mkJobStatusUrl (ST.JobId jobId) = "http://localhost:8034/job/status/" ++ (show jobId)

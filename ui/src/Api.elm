@@ -17,12 +17,13 @@ type alias JobStatus =
   , jobState : JobState
   }
 
-type Message
-  = Message String
+type alias Message
+  = { message :  String }
 
 type JobState
   = Pending
   | Finished
+  | Failed
 
 decodeJobStatus : Json.Decode.Decoder JobStatus
 decodeJobStatus =
@@ -35,17 +36,18 @@ decodeJobId : Json.Decode.Decoder JobId
 decodeJobId = Json.Decode.map JobId Json.Decode.int
 
 decodeMessage : Json.Decode.Decoder Message
-decodeMessage = Json.Decode.object1 Message ("msg" := Json.Decode.string)
+decodeMessage = Json.Decode.succeed Message |: ("msg" := Json.Decode.string)
 
 decodeJobState : Json.Decode.Decoder JobState
 decodeJobState = Json.Decode.string `Json.Decode.andThen`
                  (\v -> case v of
-                            "Pending" -> Json.Decode.succeed Pending
+                            "Pending"  -> Json.Decode.succeed Pending
                             "Finished" -> Json.Decode.succeed Finished
+                            "Failed"   -> Json.Decode.succeed Failed
                             _          -> Json.Decode.fail "Unknown jobstate")
 
 getJobStatusById : JobId -> Task.Task Http.Error (JobStatus)
-getJobStatusById id =
+getJobStatusById (JobId id) =
   let
     request =
       { verb =
@@ -104,7 +106,7 @@ decodeJobResult =
     |: ("wordsCount" := Json.Decode.map Dict.fromList (Json.Decode.list (Json.Decode.tuple2 (,) Json.Decode.string Json.Decode.int)))
 
 getJobById : JobId -> Task.Task Http.Error (JobResult)
-getJobById id =
+getJobById (JobId id) =
   let
     request =
       { verb =

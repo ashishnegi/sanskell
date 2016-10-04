@@ -59,7 +59,7 @@ data Server =
   , jobChan     :: Con.Chan ( JobId, String )
   }
 
-data JobState = Pending | Finished deriving (Eq, Show, Generic)
+data JobState = Pending | Finished | Failed deriving (Eq, Show, Generic)
 newtype Error = Error T.Text deriving (Eq, Show, Generic)
 
 newtype Message = Message String deriving (Eq, Show, Generic)

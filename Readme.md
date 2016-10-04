@@ -2,8 +2,9 @@
 
 
 # Todo
-*. POST api not returning anything.
-*. Elm-export types for Sum types : https://github.com/krisajenkins/elm-export/issues/6
+*. poll status every 1 second.
+*. remove hardcoding of port : reader monad
+*. Elm-export types for Sum types : https://github.com/krisajenkins/elm-export/issues/6 OR use elm-bridge
 1. Elm UI
 2. Have timeout for "crawling thread" in case it never returns..
 3. Have job start/finish time in JobResult.
