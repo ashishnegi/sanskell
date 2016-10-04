@@ -18,7 +18,7 @@ start port = do
   let server = ST.Server nextJobId jobResult pendingJobs jobChan
   SS.startServer server
 
-  Warp.run port $ A.app SS.staticApp (A.apiApplication server)
+  Warp.run port $ A.app server
 
 main :: IO ()
 main = start 8034

@@ -3,7 +3,7 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module Sanskell.Api (app, jobApi, apiApplication) where
+module Sanskell.Api (app, jobApi) where
 
 import qualified Network.Wai as NW
 import qualified Servant as S
@@ -13,15 +13,14 @@ import qualified Data.Text.Lazy.Encoding as TLE
 import qualified Sanskell.Types as ST
 import qualified Sanskell.Server as SS
 import qualified Control.Monad.IO.Class as CM
-import qualified Network.HTTP.Types.Status as Status
 import qualified Servant.Elm as SElm
-import qualified Elm as Elm
 
 import Debug.Trace
 
 type JobApi = "job" :> "status" :> S.Capture "id" ST.JobId :> S.Get '[S.JSON] ST.JobStatus
          :<|> "job" :> S.ReqBody '[S.JSON] ST.JobPostBody :> S.Post '[S.JSON] ST.JobId
          :<|> "job" :> S.Capture "id" ST.JobId :> S.Get '[S.JSON] ST.JobResult
+         :<|> S.Raw
 
 jobApi :: S.Proxy JobApi
 jobApi = S.Proxy
@@ -30,6 +29,7 @@ serverRouter :: ST.Server -> S.Server JobApi
 serverRouter server = statusGet
     S.:<|> jobPost
     S.:<|> jobGet
+    S.:<|> S.serveDirectory "assets"
   where
     jobGet :: ST.JobId -> S.Handler ST.JobResult
     jobGet jid = do
@@ -54,17 +54,17 @@ serverRouter server = statusGet
         Left e -> S.throwError e
         Right v -> return v
 
-apiApplication :: ST.Server -> NW.Application
-apiApplication server = S.serve jobApi (serverRouter server)
+app :: ST.Server -> NW.Application
+app server = S.serve jobApi (serverRouter server)
 
-app :: NW.Application -> NW.Application -> NW.Application
-app staticApp apiApp req respond =
-  staticApp req (\ response ->
-                  do
-                    let status = Status.statusCode . NW.responseStatus $ response
-                    if (traceShow status status) < 400
-                    then respond response
-                    else apiApp req respond)
+-- app :: NW.Application -> NW.Application -> NW.Application
+-- app staticApp apiApp req respond =
+--   staticApp req (\ response ->
+--                   do
+--                     let status = Status.statusCode . NW.responseStatus $ response
+--                     if (traceShow status status) < 400
+--                     then respond response
+--                     else apiApp req respond)
 
 instance S.FromHttpApiData ST.JobId where
   parseUrlPiece t = ST.JobId <$> S.parseUrlPiece t
