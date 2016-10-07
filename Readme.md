@@ -2,6 +2,7 @@
 
 
 # Todo
+*. write tests for wordCount : remove whitespaces and empty strings.
 *. poll status every 1 second.
 *. remove hardcoding of port : reader monad
 *. Elm-export types for Sum types : https://github.com/krisajenkins/elm-export/issues/6 OR use elm-bridge

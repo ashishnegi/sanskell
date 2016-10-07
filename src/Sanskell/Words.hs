@@ -1,4 +1,4 @@
-module Sanskell.Words (wordCloudOfWebsite) where
+module Sanskell.Words (wordCloudOfWebsite, wordCount) where
 
 import qualified Network.URI as NU
 import qualified Control.Concurrent as Con
@@ -49,7 +49,7 @@ wordCount :: [ T.Text ] -> M.Map T.Text Integer
 wordCount texts = DF.foldl' countWords M.empty texts
   where
     countWords m text =
-      let splittedWords = T.split isSeparator text
+      let splittedWords = filter (not . T.null) $ T.split isSeparator text
       in DF.foldl' (\m' word -> M.insertWith (+) word 1 m') m splittedWords
 
     isSeparator c = DC.isSeparator c   ||
@@ -57,4 +57,5 @@ wordCount texts = DF.foldl' countWords M.empty texts
                     DC.isPunctuation c ||
                     c == '\n'          ||
                     c == '\r'          ||
+                    c == '\t'          ||
                     (c >= '0' && c <= 'z')

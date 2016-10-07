@@ -1,2 +1,6 @@
+import Words as W
+import Control.Monad (void)
+
 main :: IO ()
-main = putStrLn "Test suite not yet implemented"
+main = do
+  void $ W.tests

@@ -54,6 +54,9 @@ test-suite sanskell-test
   main-is:             Spec.hs
   build-depends:       base
                      , sanskell
+                     , HUnit
+                     , containers
+  other-modules:       Words
   ghc-options:         -Wall -threaded -rtsopts -rtsopts "-with-rtsopts=-N -K1k"
   default-language:    Haskell2010
 
