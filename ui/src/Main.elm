@@ -8,6 +8,8 @@ import Api as Api
 import Task
 import Http
 import Dict exposing (Dict)
+import Time
+import Set exposing (Set)
 
 type alias URL = String
 type StatusMsg = NoStatus
@@ -18,6 +20,7 @@ type StatusMsg = NoStatus
 type alias Model = { websiteUrl : URL
                    , statusMessage : StatusMsg
                    , jobResults : Dict Api.JobId Api.JobResult
+                   , pendingRequests : Set Api.JobId
                    }
 
 type Msg = WebsiteInput URL
@@ -28,9 +31,18 @@ type Msg = WebsiteInput URL
          | StatusJobFailed Http.Error
          | JobResultSuccess Api.JobResult
          | JobResultFailed Http.Error
+         | CheckJobStatus
+
+main =
+    App.program
+    { init = init
+    , view = view
+    , update = update
+    , subscriptions = subscriptions
+    }
 
 init : ( Model, Cmd Msg)
-init = ( Model "" NoStatus Dict.empty, Cmd.none )
+init = ( Model "" NoStatus Dict.empty Set.empty, Cmd.none )
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
@@ -48,13 +60,17 @@ update msg model =
             ( { model | statusMessage = errorMsg error "Failed to post job. Please try after some time." }, Cmd.none )
 
         StatusJobSuccess jobStatus ->
-            let (msg, cmd) =
+            let (msg, cmd, pending) =
                     case jobStatus.jobState of
-                        Api.Pending  -> ( TextMessage jobStatus.jobResult.message, Cmd.none )
+                        Api.Pending  -> ( TextMessage jobStatus.jobResult.message, Cmd.none, True )
                         Api.Finished -> ( URLMessage "You can view the word cloud at" jobStatus.jobResult.message
-                                        , Task.perform JobResultFailed JobResultSuccess (Api.getJobById jobStatus.statusJobId ))
-                        Api.Failed   -> ( ErrorMessage jobStatus.jobResult.message, Cmd.none )
-            in ( { model | statusMessage = msg }, Cmd.none )
+                                        , Task.perform JobResultFailed JobResultSuccess (Api.getJobById jobStatus.statusJobId )
+                                        , False )
+                        Api.Failed   -> ( ErrorMessage jobStatus.jobResult.message, Cmd.none, False )
+                pendingRequests = if pending
+                                  then Set.insert jobStatus.statusJobId model.pendingRequests
+                                  else Set.remove jobStatus.statusJobId model.pendingRequests
+            in ( { model | statusMessage = msg, pendingRequests = pendingRequests }, cmd )
         StatusJobFailed error ->
             ( { model | statusMessage = errorMsg error "Failed to get job status. Please try again." }, Cmd.none )
 
@@ -62,6 +78,14 @@ update msg model =
             ( { model | jobResults = Dict.insert jobResult.resultJobId jobResult model.jobResults  }, Cmd.none )
         JobResultFailed error ->
             ( { model | statusMessage = errorMsg error "Failed to get data. Please try again." }, Cmd.none )
+
+        CheckJobStatus ->
+            ( model
+            , model.pendingRequests
+            |> Set.toList
+            |> List.map (\ jobId -> Task.perform StatusJobFailed StatusJobSuccess (Api.getJobStatusById jobId))
+            |> Cmd.batch )
+
 
 errorMsg : Http.Error -> String -> StatusMsg
 errorMsg error defaultMsg =
@@ -88,13 +112,8 @@ view model =
                     (Dict.values model.jobResults))
              ])
 
-main =
-    App.program
-        { init = init
-        , view = view
-        , update = update
-        , subscriptions = subscriptions
-        }
-
 subscriptions : Model -> Sub Msg
-subscriptions _ = Sub.none
+subscriptions model =
+    if Set.isEmpty model.pendingRequests
+    then Sub.none
+    else Time.every (2 * Time.second) ( \ _ -> CheckJobStatus )

@@ -103,7 +103,7 @@ decodeJobResult : Json.Decode.Decoder JobResult
 decodeJobResult =
   Json.Decode.succeed JobResult
     |: ("resultJobId" := decodeJobId)
-    |: ("wordsCount" := Json.Decode.map Dict.fromList (Json.Decode.list (Json.Decode.tuple2 (,) Json.Decode.string Json.Decode.int)))
+    |: ("wordsCount" := Json.Decode.dict Json.Decode.int)
 
 getJobById : JobId -> Task.Task Http.Error (JobResult)
 getJobById id =
