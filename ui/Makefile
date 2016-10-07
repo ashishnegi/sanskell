@@ -1,11 +1,9 @@
 #../assets/index.html: Api.elm
 ../assets/index.html: clean-html
-	echo "in ../assets/index.html : doing elm make Main.elm"
-	elm make src/Main.elm
-	mv index.html ../assets/
+	elm make src/Main.elm --output=index.html
+	mv *.html ../assets/
 
 Api.elm: GenerateElm.hs ../src/Sanskell/Api.hs
-	echo "in Api.elm : stack exec -- runhaskell ..."
 	(cd ../ ; stack exec -- runhaskell -isrc ui/GenerateElm.hs)
 
 clean-html:

@@ -8,8 +8,8 @@ import String
 import Task
 import Dict exposing (Dict, fromList)
 
-type JobId
-  = JobId Int
+type alias JobId
+  = Int
 
 type alias JobStatus =
   { statusJobId : JobId
@@ -33,7 +33,7 @@ decodeJobStatus =
     |: ("jobState" := decodeJobState)
 
 decodeJobId : Json.Decode.Decoder JobId
-decodeJobId = Json.Decode.map JobId Json.Decode.int
+decodeJobId = Json.Decode.int
 
 decodeMessage : Json.Decode.Decoder Message
 decodeMessage = Json.Decode.succeed Message |: ("msg" := Json.Decode.string)
@@ -47,7 +47,7 @@ decodeJobState = Json.Decode.string `Json.Decode.andThen`
                             _          -> Json.Decode.fail "Unknown jobstate")
 
 getJobStatusById : JobId -> Task.Task Http.Error (JobStatus)
-getJobStatusById (JobId id) =
+getJobStatusById id =
   let
     request =
       { verb =
@@ -106,7 +106,7 @@ decodeJobResult =
     |: ("wordsCount" := Json.Decode.map Dict.fromList (Json.Decode.list (Json.Decode.tuple2 (,) Json.Decode.string Json.Decode.int)))
 
 getJobById : JobId -> Task.Task Http.Error (JobResult)
-getJobById (JobId id) =
+getJobById id =
   let
     request =
       { verb =
