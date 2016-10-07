@@ -52,10 +52,4 @@ wordCount texts = DF.foldl' countWords M.empty texts
       let splittedWords = filter (not . T.null) $ T.split isSeparator text
       in DF.foldl' (\m' word -> M.insertWith (+) word 1 m') m splittedWords
 
-    isSeparator c = DC.isSeparator c   ||
-                    DC.isSymbol c      ||
-                    DC.isPunctuation c ||
-                    c == '\n'          ||
-                    c == '\r'          ||
-                    c == '\t'          ||
-                    (c >= '0' && c <= 'z')
+    isSeparator c = (c <= '\x0900') || (c >= '\x097F')

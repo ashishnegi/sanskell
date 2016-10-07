@@ -2,7 +2,7 @@
 
 
 # Todo
-*. poll status every 1 second.
+*. Add logging/exception handling in server : sometimes seems to not work.
 *. remove hardcoding of port : reader monad
 *. Elm-export types for Sum types : https://github.com/krisajenkins/elm-export/issues/6 OR use elm-bridge
 1. Elm UI
