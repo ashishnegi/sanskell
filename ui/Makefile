@@ -1,7 +1,7 @@
 #../assets/index.html: Api.elm
 ../assets/index.html: clean-html
-	elm make src/Main.elm --output=index.html
-	mv *.html ../assets/
+	elm make src/Main.elm --output=index.js
+	mv *.js ../assets/
 
 Api.elm: GenerateElm.hs ../src/Sanskell/Api.hs
 	(cd ../ ; stack exec -- runhaskell -isrc ui/GenerateElm.hs)

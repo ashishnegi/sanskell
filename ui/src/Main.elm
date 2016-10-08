@@ -52,16 +52,21 @@ type alias Position =
     , y : Int
     }
 
+type alias Flags = String
+
 main =
-    App.program
+    App.programWithFlags
     { init = init
     , view = view
     , update = update
     , subscriptions = subscriptions
     }
 
-init : ( Model, Cmd Msg)
-init = ( Model "" NoStatus Dict.empty Set.empty, Cmd.none )
+init : Flags -> ( Model, Cmd Msg)
+init flags = ( Model flags NoStatus Dict.empty Set.empty, cmdFromFlags flags )
+
+cmdFromFlags : Flags -> Cmd Msg
+cmdFromFlags flags = Cmd.none
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
@@ -153,11 +158,15 @@ showStatusMsg statusMsg =
                                       [ text url ]
                                   ]
 
-subscriptions : Model -> Sub Msg
-subscriptions model =
+timeSubs : Model -> Sub Msg
+timeSubs model =
     if Set.isEmpty model.pendingRequests
     then Sub.none
     else Time.every (2 * Time.second) ( \ _ -> CheckJobStatus )
+
+subscriptions : Model -> Sub Msg
+subscriptions model =
+    timeSubs model
 
 svgDimension : Dict a b -> Dimension
 svgDimension d = let dsize = Dict.size d |> (*) 3 >> max 500 >> min 1200

@@ -1,3 +1,4 @@
 .stack-work/*
 ui/elm-stuff
-assets
+assets/*.js
+ui/node_modules
