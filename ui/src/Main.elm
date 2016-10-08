@@ -52,7 +52,8 @@ type alias Position =
     , y : Int
     }
 
-type alias Flags = String
+type alias Flags =
+    { jobId : Maybe Int }
 
 main =
     App.programWithFlags
@@ -63,10 +64,14 @@ main =
     }
 
 init : Flags -> ( Model, Cmd Msg)
-init flags = ( Model flags NoStatus Dict.empty Set.empty, cmdFromFlags flags )
+init flags = ( Model "" NoStatus Dict.empty Set.empty, cmdFromFlags flags )
 
 cmdFromFlags : Flags -> Cmd Msg
-cmdFromFlags flags = Cmd.none
+cmdFromFlags flags =
+    flags.jobId
+        |> Maybe.map ( \ jobId -> Task.perform StatusJobFailed StatusJobSuccess (Api.getJobStatusById jobId))
+        |> Maybe.withDefault Cmd.none
+
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
@@ -130,6 +135,7 @@ view model =
                , button [ class "send-job-btn"
                         , onClick PostJob ]
                      [ text "Make word cloud" ]
+               -- , text ( toString model )
                ]
              , [ showStatusMsg model.statusMessage
                ]

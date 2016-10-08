@@ -7,7 +7,16 @@
   <body>
     <script src="/index.js"></script>
     <script>
-      Elm.Main.fullscreen(window.location.href);
+      var href = window.location.href,
+          splitHref = href.split("job-id");
+
+      // substr removes the = from "=12"
+      var jobId = (splitHref.length > 0) ? splitHref[splitHref.length - 1].substr(1) : null,
+          jobIdInt = parseInt(jobId);
+
+      Elm.Main.fullscreen({
+        "jobId" : isNaN(jobIdInt) ? null : jobIdInt
+      });
     </script>
   </body>
 </html>
