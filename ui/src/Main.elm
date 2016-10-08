@@ -10,6 +10,7 @@ import Http
 import Dict exposing (Dict)
 import Time
 import Set exposing (Set)
+import Random
 
 type alias URL = String
 type StatusMsg = NoStatus
@@ -32,6 +33,18 @@ type Msg = WebsiteInput URL
          | JobResultSuccess Api.JobResult
          | JobResultFailed Http.Error
          | CheckJobStatus
+         | RandomWordCloudPositions Api.JobId (List (Int,Int))
+
+type alias Dimension =
+    { width : Int
+    , height : Int
+    }
+
+type alias Weight = Int
+type alias Position =
+    { x : Int
+    , y : Int
+    }
 
 main =
     App.program
@@ -63,7 +76,7 @@ update msg model =
             let (msg, cmd, pending) =
                     case jobStatus.jobState of
                         Api.Pending  -> ( TextMessage jobStatus.jobResult.message, Cmd.none, True )
-                        Api.Finished -> ( URLMessage "You can view the word cloud at" jobStatus.jobResult.message
+                        Api.Finished -> ( URLMessage "You can view the word cloud at: " jobStatus.jobResult.message
                                         , Task.perform JobResultFailed JobResultSuccess (Api.getJobById jobStatus.statusJobId )
                                         , False )
                         Api.Failed   -> ( ErrorMessage jobStatus.jobResult.message, Cmd.none, False )
@@ -86,6 +99,7 @@ update msg model =
             |> List.map (\ jobId -> Task.perform StatusJobFailed StatusJobSuccess (Api.getJobStatusById jobId))
             |> Cmd.batch )
 
+        RandomWordCloudPositions jobId positions -> ( model, Cmd.none )
 
 errorMsg : Http.Error -> String -> StatusMsg
 errorMsg error defaultMsg =
@@ -117,3 +131,15 @@ subscriptions model =
     if Set.isEmpty model.pendingRequests
     then Sub.none
     else Time.every (2 * Time.second) ( \ _ -> CheckJobStatus )
+
+wordCloud : Dict String (Weight, Position) -> Html Msg
+wordCloud wordsCount =
+    div [] []
+
+randomGridCmd : Api.JobResult -> Dimension -> Cmd Msg
+randomGridCmd jobResult dimension =
+    Random.generate (RandomWordCloudPositions jobResult.resultJobId)
+        (Random.list (Dict.size jobResult.wordsCount)
+             (Random.map2 (,)
+                  (Random.int 1 dimension.width)
+                  (Random.int 1 dimension.height)))
