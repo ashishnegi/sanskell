@@ -96,14 +96,14 @@ postJob body =
 
 type alias JobResult =
   { resultJobId : JobId
-  , wordsCount  : Dict String Int
+  , wordsCount  : Dict String Float
   }
 
 decodeJobResult : Json.Decode.Decoder JobResult
 decodeJobResult =
   Json.Decode.succeed JobResult
     |: ("resultJobId" := decodeJobId)
-    |: ("wordsCount" := Json.Decode.dict Json.Decode.int)
+    |: ("wordsCount" := Json.Decode.dict Json.Decode.float)
 
 getJobById : JobId -> Task.Task Http.Error (JobResult)
 getJobById id =

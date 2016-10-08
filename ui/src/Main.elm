@@ -21,7 +21,7 @@ type StatusMsg = NoStatus
                | ErrorMessage String
                | URLMessage String URL
 
-type alias WordCloud = Dict String (Weight, Position)
+type alias WordCloud = Dict String (Count, Weight, Position)
 
 type alias Model = { websiteUrl : URL
                    , statusMessage : StatusMsg
@@ -45,7 +45,8 @@ type alias Dimension =
     , height : Int
     }
 
-type alias Weight = Int
+type alias Count = Float
+type alias Weight = Float
 type alias Position =
     { x : Int
     , y : Int
@@ -143,7 +144,7 @@ subscriptions model =
     else Time.every (2 * Time.second) ( \ _ -> CheckJobStatus )
 
 svgDimension : Dict a b -> Dimension
-svgDimension d = let dsize = Dict.size d |> max 500
+svgDimension d = let dsize = Dict.size d |> (*) 3 >> max 500 >> min 1200
                  in Dimension dsize (round ((toFloat dsize) / 1.5))
 
 wordCloud : WordCloud -> Html Msg
@@ -151,7 +152,7 @@ wordCloud wordsCount =
     let dimension = svgDimension wordsCount
     in wordsCount
         |> Dict.toList
-        |> List.map ( \ (name, (w, pos)) ->
+        |> List.map ( \ (name, (c, w, pos)) ->
                           Svg.g [ ]
                                 [ Svg.text'
                                       [ SvgA.fill "red"
@@ -170,12 +171,20 @@ randomWordPositionsCmd jobResult dimension =
     Random.generate (RandomWordCloudPositions jobResult)
         (Random.list (Dict.size jobResult.wordsCount)
              (Random.map2 Position
-                  (Random.int 1 dimension.width)
-                  (Random.int 1 dimension.height)))
+                  (Random.int 20 (dimension.width - 60))
+                  (Random.int 20 (dimension.height - 20))))
 
 makeWordCloud : Api.JobResult -> List Position -> WordCloud
 makeWordCloud jobResult positions =
-    positions
-    |> List.map2 ( \ (name, weight) pos -> (name, (weight, pos)) )
-                 (Dict.toList jobResult.wordsCount)
-    |> Dict.fromList
+    let weights = jobResult.wordsCount
+                |> Dict.values
+                |> List.sort
+                |> Debug.log "sorted weights : "
+        avgWeight = List.sum weights / toFloat (List.length weights) |> Debug.log "avgWeight: "
+        minWeight = List.minimum weights |> Maybe.withDefault 0 |> Debug.log "minWeight: "
+        diffWeight = avgWeight - minWeight + 1
+        scale     = (\x -> (x - minWeight) / diffWeight) >> (*) 10 >> (+) 15 >> min 20
+    in positions
+        |> List.map2 ( \ (name, count) pos -> (name, (count, scale count, pos)) )
+                     (Dict.toList jobResult.wordsCount)
+        |> Dict.fromList
