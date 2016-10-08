@@ -11,16 +11,21 @@ import Dict exposing (Dict)
 import Time
 import Set exposing (Set)
 import Random
+import Svg as Svg
+import Svg.Attributes as SvgA
 
 type alias URL = String
+
 type StatusMsg = NoStatus
                | TextMessage String
                | ErrorMessage String
                | URLMessage String URL
 
+type alias WordCloud = Dict String (Weight, Position)
+
 type alias Model = { websiteUrl : URL
                    , statusMessage : StatusMsg
-                   , jobResults : Dict Api.JobId Api.JobResult
+                   , wordCounts : Dict Api.JobId WordCloud
                    , pendingRequests : Set Api.JobId
                    }
 
@@ -33,7 +38,7 @@ type Msg = WebsiteInput URL
          | JobResultSuccess Api.JobResult
          | JobResultFailed Http.Error
          | CheckJobStatus
-         | RandomWordCloudPositions Api.JobId (List (Int,Int))
+         | RandomWordCloudPositions Api.JobResult (List Position)
 
 type alias Dimension =
     { width : Int
@@ -88,7 +93,7 @@ update msg model =
             ( { model | statusMessage = errorMsg error "Failed to get job status. Please try again." }, Cmd.none )
 
         JobResultSuccess jobResult ->
-            ( { model | jobResults = Dict.insert jobResult.resultJobId jobResult model.jobResults  }, Cmd.none )
+            ( model, randomWordPositionsCmd jobResult (svgDimension jobResult.wordsCount))
         JobResultFailed error ->
             ( { model | statusMessage = errorMsg error "Failed to get data. Please try again." }, Cmd.none )
 
@@ -99,7 +104,8 @@ update msg model =
             |> List.map (\ jobId -> Task.perform StatusJobFailed StatusJobSuccess (Api.getJobStatusById jobId))
             |> Cmd.batch )
 
-        RandomWordCloudPositions jobId positions -> ( model, Cmd.none )
+        RandomWordCloudPositions jobResult positions ->
+            ( { model | wordCounts = Dict.insert jobResult.resultJobId (makeWordCloud jobResult positions) model.wordCounts }, Cmd.none )
 
 errorMsg : Http.Error -> String -> StatusMsg
 errorMsg error defaultMsg =
@@ -121,10 +127,14 @@ view model =
                , text (toString model)
                , br [] []
                ]
-             , (List.map ( \ result ->
-                                  text (toString result.wordsCount))
-                    (Dict.values model.jobResults))
+             , (List.map wordCloud (Dict.values model.wordCounts))
+             , [ button
+                     [ onClick (JobResultSuccess (Api.JobResult 1 someWordsCount))  ]
+                     [ text "WordCloud" ]
+               ]
              ])
+
+someWordsCount = Dict.fromList [("ashish", 30), ("negi", 14)]
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
@@ -132,14 +142,40 @@ subscriptions model =
     then Sub.none
     else Time.every (2 * Time.second) ( \ _ -> CheckJobStatus )
 
-wordCloud : Dict String (Weight, Position) -> Html Msg
-wordCloud wordsCount =
-    div [] []
+svgDimension : Dict a b -> Dimension
+svgDimension d = let dsize = Dict.size d |> max 500
+                 in Dimension dsize (round ((toFloat dsize) / 1.5))
 
-randomGridCmd : Api.JobResult -> Dimension -> Cmd Msg
-randomGridCmd jobResult dimension =
-    Random.generate (RandomWordCloudPositions jobResult.resultJobId)
+wordCloud : WordCloud -> Html Msg
+wordCloud wordsCount =
+    let dimension = svgDimension wordsCount
+    in wordsCount
+        |> Dict.toList
+        |> List.map ( \ (name, (w, pos)) ->
+                          Svg.g [ ]
+                                [ Svg.text'
+                                      [ SvgA.fill "red"
+                                      , SvgA.x (toString pos.x)
+                                      , SvgA.y (toString pos.y)
+                                      , SvgA.fontSize (toString w)
+                                      ]
+                                      [ Svg.text name ]
+                                ])
+        |> Svg.svg [ dimension.width |> toString |> SvgA.width
+                   , SvgA.height (toString dimension.height)
+                   ]
+
+randomWordPositionsCmd : Api.JobResult -> Dimension -> Cmd Msg
+randomWordPositionsCmd jobResult dimension =
+    Random.generate (RandomWordCloudPositions jobResult)
         (Random.list (Dict.size jobResult.wordsCount)
-             (Random.map2 (,)
+             (Random.map2 Position
                   (Random.int 1 dimension.width)
                   (Random.int 1 dimension.height)))
+
+makeWordCloud : Api.JobResult -> List Position -> WordCloud
+makeWordCloud jobResult positions =
+    positions
+    |> List.map2 ( \ (name, weight) pos -> (name, (weight, pos)) )
+                 (Dict.toList jobResult.wordsCount)
+    |> Dict.fromList
