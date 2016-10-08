@@ -1,8 +1,8 @@
 module Main exposing (main)
 
-import Html exposing (Html, div, text, button, br)
+import Html exposing (Html, div, text, button, br, a)
 import Html.Events exposing (onClick, onInput)
-import Html.Attributes exposing (placeholder, class)
+import Html.Attributes exposing (placeholder, class, href)
 import Html.App as App
 import Api as Api
 import Task
@@ -81,7 +81,7 @@ update msg model =
         StatusJobSuccess jobStatus ->
             let (msg, cmd, pending) =
                     case jobStatus.jobState of
-                        Api.Pending  -> ( TextMessage jobStatus.jobResult.message, Cmd.none, True )
+                        Api.Pending  -> ( URLMessage "Still working on your job: " jobStatus.jobResult.message, Cmd.none, True )
                         Api.Finished -> ( URLMessage "You can view the word cloud at: " jobStatus.jobResult.message
                                         , Task.perform JobResultFailed JobResultSuccess (Api.getJobById jobStatus.statusJobId )
                                         , False )
@@ -125,17 +125,33 @@ view model =
                , button [ class "send-job-btn"
                         , onClick PostJob ]
                      [ text "Make word cloud" ]
-               , text (toString model)
-               , br [] []
+               ]
+             , [ showStatusMsg model.statusMessage
                ]
              , (List.map wordCloud (Dict.values model.wordCounts))
-             , [ button
-                     [ onClick (JobResultSuccess (Api.JobResult 1 someWordsCount))  ]
-                     [ text "WordCloud" ]
-               ]
+             -- , [ button
+             --         [ onClick (JobResultSuccess (Api.JobResult 1 someWordsCount))  ]
+             --         [ text "WordCloud" ]
+             --   ]
              ])
 
 someWordsCount = Dict.fromList [("ashish", 30), ("negi", 14)]
+
+showStatusMsg : StatusMsg -> Html Msg
+showStatusMsg statusMsg =
+    case statusMsg of
+        NoStatus -> div [] []
+        TextMessage msg -> div [ class "status-msg" ]
+                               [ text msg ]
+        ErrorMessage msg -> div [ class "status-msg error-msg"]
+                                [ text msg ]
+        URLMessage msg url -> div [ class "status-msg"]
+                                  [ text msg
+                                  , a [ class "url-msg"
+                                      , href url
+                                      ]
+                                      [ text url ]
+                                  ]
 
 subscriptions : Model -> Sub Msg
 subscriptions model =

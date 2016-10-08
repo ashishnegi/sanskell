@@ -2,6 +2,7 @@
 
 
 # Todo
+*. Add navigation in elm to get job-id from the url.
 *. Add logging/exception handling in server : sometimes seems to not work.
 *. remove hardcoding of port : reader monad
 *. Elm-export types for Sum types : https://github.com/krisajenkins/elm-export/issues/6 OR use elm-bridge
