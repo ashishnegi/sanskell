@@ -16,7 +16,7 @@ start server with :
 `stack exec sanskell-exe`
 
 ## Todo
-* deploy :)
+* change hardcoded website name of "localhost" to take from config file.
 * try to write tests for IO things.
 * break down IO things into more pure functions and test them.
 * have really more tests : property based as well; with -K1K test suite size.
