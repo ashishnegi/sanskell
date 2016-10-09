@@ -7,6 +7,8 @@ import qualified Control.Concurrent as Con
 import qualified Data.Map as M
 import qualified Data.Configurator as DC
 import qualified Data.Maybe as DMay
+import qualified System.Environment as Env
+import qualified Data.Char as C
 
 import qualified Sanskell.Api as A
 import qualified Sanskell.Types as ST
@@ -26,8 +28,13 @@ start serverConfig = do
 
 main :: IO ()
 main = do
-  config      <- DC.load [ DC.Required "config/dev/config.cfg" ]
-  appPort     <- DC.lookup config "app.port"
+  envFromEnv  <- Env.lookupEnv "AppEnv"
+
+  let env = DMay.fromMaybe "dev" envFromEnv
+      configFileName = "config/" ++ (map C.toLower env) ++ "/app.cfg"
+
+  config   <- DC.load [ DC.Required configFileName ]
+  appPort  <- DC.lookup config "app.port"
 
   let serverConfig = ST.Config (DMay.fromMaybe 8034 appPort)
   start serverConfig

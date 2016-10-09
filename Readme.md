@@ -16,6 +16,7 @@ start server with :
 `stack exec sanskell-exe`
 
 ## Todo
+* read ENV from the env-variable.
 * remove hardcoding of port/config : reader monad.
 * try to write tests for IO things.
 * break down IO things into more pure functions and test them.
