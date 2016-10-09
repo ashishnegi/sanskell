@@ -34,7 +34,11 @@ main = do
       configFileName = "config/" ++ (map C.toLower env) ++ "/app.cfg"
 
   config   <- DC.load [ DC.Required configFileName ]
-  appPort  <- DC.lookup config "app.port"
+  appPortStr  <- DC.lookup config "app.port"
 
-  let serverConfig = ST.Config (DMay.fromMaybe 8034 appPort)
+  let appPort = DMay.fromMaybe 8034 (read <$> appPortStr)
+      serverConfig = ST.Config appPort
+
+  putStrLn $ "Running server on " ++ (show appPort)
+
   start serverConfig
