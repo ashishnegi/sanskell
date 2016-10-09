@@ -41,6 +41,19 @@ data JobResult =
   }
   deriving (Eq, Show, Generic)
 
+-- Server.hs
+newtype Config =
+  Config { port :: Int }
+
+data Server =
+  Server
+  { nextJobId   :: Con.MVar JobId
+  , jobResults  :: Con.MVar ( M.Map JobId (Either T.Text JobResult))
+  , pendingJobs :: Con.MVar [ JobId ]
+  , jobChan     :: Con.Chan ( JobId, String )
+  , config      :: Config
+  }
+
 -- Api.hs
 newtype JobPostBody =
   JobPostBody
@@ -49,15 +62,6 @@ newtype JobPostBody =
   deriving (Eq, Show, Generic)
 
 newtype URL = URL String deriving (Eq, Show, Generic)
-
--- Server.hs
-data Server =
-  Server
-  { nextJobId   :: Con.MVar JobId
-  , jobResults  :: Con.MVar ( M.Map JobId (Either T.Text JobResult))
-  , pendingJobs :: Con.MVar [ JobId ]
-  , jobChan     :: Con.Chan ( JobId, String )
-  }
 
 data JobState = Pending | Finished | Failed deriving (Eq, Show, Generic)
 newtype Error = Error T.Text deriving (Eq, Show, Generic)

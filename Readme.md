@@ -1,4 +1,4 @@
-## Sanskell
+# Sanskell
 A crawler for sanskrit website that generates `word-cloud` for the pages that are crawled.
 
 ## setup

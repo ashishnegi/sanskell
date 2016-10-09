@@ -46,6 +46,7 @@ executable sanskell-exe
                      , sanskell
                      , warp
                      , containers
+                     , configurator
   default-language:    Haskell2010
 
 test-suite sanskell-test
