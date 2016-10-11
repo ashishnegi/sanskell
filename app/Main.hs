@@ -9,6 +9,7 @@ import qualified Data.Configurator as DC
 import qualified Data.Maybe as DMay
 import qualified System.Environment as Env
 import qualified Data.Char as C
+import qualified Network.Wai.Middleware.Gzip as Gzip
 
 import qualified Sanskell.Api as A
 import qualified Sanskell.Types as ST
@@ -24,7 +25,8 @@ start serverConfig = do
   let server = ST.Server nextJobId jobResult pendingJobs jobChan serverConfig
   SS.startServer server
 
-  Warp.run (ST.port serverConfig) $ A.app server
+  let application = Gzip.gzip (Gzip.def { Gzip.gzipFiles = Gzip.GzipCompress}) $ A.app server
+  Warp.run (ST.port serverConfig) application
 
 main :: IO ()
 main = do
