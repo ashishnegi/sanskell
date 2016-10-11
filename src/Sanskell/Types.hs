@@ -42,8 +42,10 @@ data JobResult =
   deriving (Eq, Show, Generic)
 
 -- Server.hs
-newtype Config =
-  Config { port :: Int }
+data Config =
+  Config { port :: Int
+         , rootUrl :: URL
+         }
 
 data Server =
   Server

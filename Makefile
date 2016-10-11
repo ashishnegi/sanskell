@@ -15,3 +15,7 @@ server-setup:
 
 server-build:
 	stack build
+
+start-server: server-setup server-build
+	strip /usr/.local/bin/sanskell-exe
+	AppEnv=prod ROOT_URL=https://sanskell.herokuapp.com /usr/.local/bin/sanskell-exe

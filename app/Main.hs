@@ -33,12 +33,14 @@ main = do
   let env = DMay.fromMaybe "dev" envFromEnv
       configFileName = "config/" ++ (map C.toLower env) ++ "/app.cfg"
 
-  config   <- DC.load [ DC.Required configFileName ]
-  appPortStr  <- DC.lookup config "app.port"
+  config     <- DC.load [ DC.Required configFileName ]
+  appPortStr <- DC.lookup config "app.port"
+  appRootUrl <- DC.lookup config "app.root-url"
 
   let appPort = DMay.fromMaybe 8034 (read <$> appPortStr)
-      serverConfig = ST.Config appPort
+      rootUrl = DMay.fromMaybe ("http://localhost:" ++ show appPort) appRootUrl
+      serverConfig = ST.Config appPort (ST.URL rootUrl)
 
-  putStrLn $ "Running server on " ++ (show appPort)
+  putStrLn $ "Running server on " ++ (show rootUrl)
 
   start serverConfig

@@ -16,17 +16,20 @@ start server with :
 `stack exec sanskell-exe`
 
 ## Todo
-* change hardcoded website name of "localhost" to take from config file.
-* try to write tests for IO things.
-* break down IO things into more pure functions and test them.
-* have really more tests : property based as well; with -K1K test suite size.
-* Have better position of words : most-weighted at the center
-* Add logging/exception handling in server : sometimes seems to not work.
-* Elm-export types for Sum types : https://github.com/krisajenkins/elm-export/
-issues/6 OR use elm-bridge
-1. Elm UI
+1. Change hardcoded website name of "localhost" to take from config file.
+   Have better position of words : most-weighted at the center
+   Gunzip response of apis;
+   compress index.js;
+   add checksum to index.js and put in index.html.
 2. Have timeout for "crawling thread" in case it never returns..
+   Add logging/exception handling in server : sometimes seems to not work.
 3. Have job start/finish time in JobResult.
 4. For fair policy --
    * do not crawl same url for 10 mins, if job failed.
    * do not crawl same url for 1 hour, if job succeeded.
+
+* try to write tests for IO things.
+* break down IO things into more pure functions and test them.
+* have really more tests : property based as well; with -K1K test suite size.
+* Elm-export types for Sum types : https://github.com/krisajenkins/elm-export/
+issues/6 OR use elm-bridge
