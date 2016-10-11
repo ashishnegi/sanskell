@@ -82,11 +82,9 @@ jobStatus ST.Server{..} jobId = do
 
 
 mkJobUrl :: ST.Config -> ST.JobId -> String
-mkJobUrl ST.Config{..} (ST.JobId jobId) =
-  let ST.URL url = rootUrl
-  in url ++ "/?job-id=" ++ (show jobId)
+mkJobUrl (ST.Config { rootUrl = (ST.URL url)}) (ST.JobId jobId) =
+  url ++ "/?job-id=" ++ (show jobId)
 
 mkJobStatusUrl :: ST.Config -> ST.JobId -> String
-mkJobStatusUrl ST.Config{..} (ST.JobId jobId) =
-  let ST.URL url = rootUrl
-  in url ++ "/job/status/" ++ (show jobId)
+mkJobStatusUrl (ST.Config { rootUrl = (ST.URL url)}) (ST.JobId jobId) =
+  url ++ "/job/status/" ++ (show jobId)
