@@ -19,7 +19,6 @@ start server with :
 1. Have better position of words : most-weighted at the center
    compress index.js;
    add checksum to index.js and put in index.html.
-   avgWeight gives NaN :P
 2. Have timeout for "crawling thread" in case it never returns..
    Add logging/exception handling in server : sometimes seems to not work.
 3. Have job start/finish time in JobResult.

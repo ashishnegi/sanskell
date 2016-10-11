@@ -207,15 +207,18 @@ randomWordPositionsCmd jobResult dimension =
 
 makeWordCloud : Api.JobResult -> List Position -> WordCloud
 makeWordCloud jobResult positions =
-    let weights = jobResult.wordsCount
-                |> Dict.values
-                |> List.sort
-                |> Debug.log "sorted weights : "
-        avgWeight = List.sum weights / toFloat (List.length weights) |> Debug.log "avgWeight: "
-        minWeight = List.minimum weights |> Maybe.withDefault 0 |> Debug.log "minWeight: "
-        diffWeight = avgWeight - minWeight + 1
-        scale     = (\x -> (x - minWeight) / diffWeight) >> (*) 10 >> (+) 15 >> min 20
-    in positions
-        |> List.map2 ( \ (name, count) pos -> (name, (count, scale count, pos)) )
-                     (Dict.toList jobResult.wordsCount)
-        |> Dict.fromList
+    case positions of
+        [] -> Dict.empty
+        otherwise ->
+            let weights = jobResult.wordsCount
+                        |> Dict.values
+                        |> List.sort
+                        |> Debug.log "sorted weights : "
+                avgWeight = List.sum weights / toFloat (List.length weights) |> Debug.log "avgWeight: "
+                minWeight = List.minimum weights |> Maybe.withDefault 0 |> Debug.log "minWeight: "
+                diffWeight = avgWeight - minWeight + 1
+                scale     = (\x -> (x - minWeight) / diffWeight) >> (*) 10 >> (+) 15 >> min 20
+            in positions
+                |> List.map2 ( \ (name, count) pos -> (name, (count, scale count, pos)) )
+                             (Dict.toList jobResult.wordsCount)
+                |> Dict.fromList
