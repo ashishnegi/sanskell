@@ -22,11 +22,15 @@ type StatusMsg = NoStatus
                | URLMessage String URL
 
 type alias WordCloud = Dict String (Count, Weight, Position)
+type alias SpiralParams = { initial : (Float, Float)
+                          , deltas  : (Float, Float)
+                          }
 
 type alias Model = { websiteUrl : URL
                    , statusMessage : StatusMsg
-                   , wordCounts : Dict Api.JobId WordCloud
+                   , wordCounts : Dict Api.JobId Api.JobResult
                    , pendingRequests : Set Api.JobId
+                   , spiralParams : SpiralParams
                    }
 
 type Msg = WebsiteInput URL
@@ -38,7 +42,10 @@ type Msg = WebsiteInput URL
          | JobResultSuccess Api.JobResult
          | JobResultFailed Http.Error
          | CheckJobStatus
-         | RandomWordCloudPositions Api.JobResult (List Position)
+         | ChangeInitialR Float
+         | ChangeInitialTheta Float
+         | ChangeInitialDeltaR Float
+         | ChangeInitialDeltaTheta Float
 
 type alias Dimension =
     { width : Int
@@ -64,7 +71,7 @@ main =
     }
 
 init : Flags -> ( Model, Cmd Msg)
-init flags = ( Model "" NoStatus Dict.empty Set.empty, cmdFromFlags flags )
+init flags = ( Model "" NoStatus Dict.empty Set.empty (SpiralParams (1, 1) (1.0, 10.0)), cmdFromFlags flags )
 
 cmdFromFlags : Flags -> Cmd Msg
 cmdFromFlags flags =
@@ -104,7 +111,8 @@ update msg model =
             ( { model | statusMessage = errorMsg error "Failed to get job status. Please try again." }, Cmd.none )
 
         JobResultSuccess jobResult ->
-            ( model, randomWordPositionsCmd jobResult (svgDimension jobResult.wordsCount))
+            ( { model | wordCounts = Dict.insert jobResult.resultJobId jobResult model.wordCounts }
+            , Cmd.none)
         JobResultFailed error ->
             ( { model | statusMessage = errorMsg error "Failed to get data. Please try again." }, Cmd.none )
 
@@ -115,8 +123,21 @@ update msg model =
             |> List.map (\ jobId -> Task.perform StatusJobFailed StatusJobSuccess (Api.getJobStatusById jobId))
             |> Cmd.batch )
 
-        RandomWordCloudPositions jobResult positions ->
-            ( { model | wordCounts = Dict.insert jobResult.resultJobId (makeWordCloud jobResult positions) model.wordCounts }, Cmd.none )
+        ChangeInitialR i -> let (x,y) = model.spiralParams.initial
+                                mSpiralParams = model.spiralParams
+                            in ( { model | spiralParams = { mSpiralParams | initial = (x + i, y) }}, Cmd.none)
+
+        ChangeInitialTheta i -> let (x,y) = model.spiralParams.initial
+                                    mSpiralParams = model.spiralParams
+                                in ( { model | spiralParams = { mSpiralParams | initial = (x, y + i) }}, Cmd.none)
+
+        ChangeInitialDeltaR i -> let (x,y) = model.spiralParams.deltas
+                                     mSpiralParams = model.spiralParams
+                                 in ( { model | spiralParams = { mSpiralParams | deltas = (x + i, y) }}, Cmd.none)
+
+        ChangeInitialDeltaTheta i -> let (x,y) = model.spiralParams.deltas
+                                         mSpiralParams = model.spiralParams
+                                     in ( { model | spiralParams = { mSpiralParams | deltas = (x, y + i) }}, Cmd.none)
 
 errorMsg : Http.Error -> String -> StatusMsg
 errorMsg error defaultMsg =
@@ -137,16 +158,63 @@ view model =
                      [ text "Make word cloud" ]
                -- , text ( toString model )
                ]
-             , [ showStatusMsg model.statusMessage
-               ]
-             , (List.map wordCloud (Dict.values model.wordCounts))
+
+
+             , [ showStatusMsg model.statusMessage ]
+
+             , (List.map wordCloud (List.map (\jobResult -> wordSpiralPositions jobResult (svgDimension jobResult.wordsCount)
+                                                                 model.spiralParams.initial model.spiralParams.deltas)
+                                        (Dict.values model.wordCounts)))
              -- , [ button
              --         [ onClick (JobResultSuccess (Api.JobResult 1 someWordsCount))  ]
              --         [ text "WordCloud" ]
              --   ]
+             , spiralButtons model
              ])
 
-someWordsCount = Dict.fromList [("ashish", 30), ("negi", 14)]
+spiralButtons : Model -> List (Html Msg)
+spiralButtons model =
+    let (r, t) = model.spiralParams.initial
+        (dr, dt) = model.spiralParams.deltas
+    in
+    [ div []
+        [ div []
+              [ button
+                    [ onClick (ChangeInitialR 1)]
+                    [text "↑"]
+              , text ("r : " ++ toString r)
+              , button
+                    [ onClick (ChangeInitialR -1)]
+                    [text "↓"]
+              ]
+        , div []
+              [ button
+                    [ onClick (ChangeInitialTheta 1)]
+                    [text "↑"]
+              , text ("θ : " ++ toString t)
+              , button
+                    [ onClick (ChangeInitialTheta -1)]
+                    [text "↓"]
+              ]
+        , div []
+              [ button
+                    [ onClick (ChangeInitialDeltaR 1)]
+                    [text "↑"]
+              , text ("Δr : " ++ toString dr)
+              , button
+                    [ onClick (ChangeInitialDeltaR -1)]
+                    [text "↓"]
+              ]
+        , div []
+              [ button
+                    [ onClick (ChangeInitialDeltaTheta 1)]
+                    [text "↑"]
+              , text ("Δθ : " ++ toString dt)
+              , button
+                    [ onClick (ChangeInitialDeltaTheta -1)]
+                    [text "↓"]
+              ]
+        ]]
 
 showStatusMsg : StatusMsg -> Html Msg
 showStatusMsg statusMsg =
@@ -197,13 +265,14 @@ wordCloud wordsCount =
                    , SvgA.height (toString dimension.height)
                    ]
 
-randomWordPositionsCmd : Api.JobResult -> Dimension -> Cmd Msg
-randomWordPositionsCmd jobResult dimension =
-    Random.generate (RandomWordCloudPositions jobResult)
-        (Random.list (Dict.size jobResult.wordsCount)
-             (Random.map2 Position
-                  (Random.int 20 (dimension.width - 60))
-                  (Random.int 20 (dimension.height - 20))))
+wordSpiralPositions : Api.JobResult -> Dimension -> (Float, Float) -> (Float, Float) -> WordCloud
+wordSpiralPositions jobResult dimension (deltaR, deltaTheta) (initialR, initialTheta) =
+    [1 .. Dict.size jobResult.wordsCount]
+        |> List.scanl (\ _ (r, t) -> (r + deltaR, t + deltaTheta)) (initialR, initialTheta)
+        |> List.map (\ (r, t) -> (r * cos t, r * sin t))
+        |> List.map (\ (x, y) -> (x + (toFloat dimension.width)/2, y + (toFloat dimension.height)/2))
+        |> List.map (\ (x,y) -> Position (round x) (round y))
+        |> makeWordCloud jobResult
 
 makeWordCloud : Api.JobResult -> List Position -> WordCloud
 makeWordCloud jobResult positions =
