@@ -266,7 +266,7 @@ wordCloud wordsCount =
                    ]
 
 wordSpiralPositions : Api.JobResult -> Dimension -> (Float, Float) -> (Float, Float) -> WordCloud
-wordSpiralPositions jobResult dimension (deltaR, deltaTheta) (initialR, initialTheta) =
+wordSpiralPositions jobResult dimension (initialR, initialTheta) (deltaR, deltaTheta) =
     [1 .. Dict.size jobResult.wordsCount]
         |> List.scanl (\ _ (r, t) -> (r + deltaR, t + deltaTheta)) (initialR, initialTheta)
         |> List.map (\ (r, t) -> (r * cos t, r * sin t))

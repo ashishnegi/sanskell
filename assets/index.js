@@ -10101,9 +10101,9 @@ var _ashishnegi$sanskell$Main$wordSpiralPositions = F4(
 							F2(
 								function (_p24, _p23) {
 									var _p25 = _p23;
-									return {ctor: '_Tuple2', _0: _p25._0 + _p13._0, _1: _p25._1 + _p13._1};
+									return {ctor: '_Tuple2', _0: _p25._0 + _p14._0, _1: _p25._1 + _p14._1};
 								}),
-							{ctor: '_Tuple2', _0: _p14._0, _1: _p14._1},
+							{ctor: '_Tuple2', _0: _p13._0, _1: _p13._1},
 							_elm_lang$core$Native_List.range(
 								1,
 								_elm_lang$core$Dict$size(jobResult.wordsCount)))))));
