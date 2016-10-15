@@ -16,16 +16,16 @@ start server with :
 `stack exec sanskell-exe`
 
 ## Todo
-1. Have better position of words : most-weighted at the center
-   compress index.js; -- may be donot need it after gzip in server..
-   add checksum to index.js and put in index.html.
-   some cache control of 1 minute would be good.
-2. Have timeout for "crawling thread" in case it never returns..
+1. Have timeout for "crawling thread" in case it never returns..
    Add logging/exception handling in server : sometimes seems to not work.
-3. Have job start/finish time in JobResult.
-4. For fair policy --
+2. Have job start/finish time in JobResult.
+3. For fair policy --
    * do not crawl same url for 10 mins, if job failed.
    * do not crawl same url for 1 hour, if job succeeded.
+4. Compress index.js; -- may be donot need it after gzip in server..
+   add checksum to index.js and put in index.html. -- need asset pipelining / webpack. -- low priority
+   some cache control of 1 minute would be good.
+
 
 * try to write tests for IO things.
 * break down IO things into more pure functions and test them.
