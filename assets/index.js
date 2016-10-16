@@ -10745,6 +10745,7 @@ var _ashishnegi$sanskell$Main$view = function (model) {
 					[
 						_ashishnegi$sanskell$Main$showStatusMsg(model.statusMessage)
 					]),
+					_ashishnegi$sanskell$Main$spiralButtons(model),
 					A2(
 					_elm_lang$core$List$map,
 					_ashishnegi$sanskell$Main$wordCloud,
@@ -10753,8 +10754,7 @@ var _ashishnegi$sanskell$Main$view = function (model) {
 						function (jobResult) {
 							return A2(_ashishnegi$sanskell$Main$wordSpiralPositions, jobResult, model.spiralParams);
 						},
-						_elm_lang$core$Dict$values(model.wordCounts))),
-					_ashishnegi$sanskell$Main$spiralButtons(model)
+						_elm_lang$core$Dict$values(model.wordCounts)))
 				])));
 };
 var _ashishnegi$sanskell$Main$main = {

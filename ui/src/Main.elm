@@ -191,13 +191,12 @@ view model =
                      [ text "Make word cloud" ]
                -- , text ( toString model.spiralParams )
                ]
-
-
              , [ showStatusMsg model.statusMessage ]
-
+             -- buttons to play with word cloud
+             , spiralButtons model
+             -- word cloud
              , (List.map wordCloud (List.map (\jobResult -> wordSpiralPositions jobResult model.spiralParams)
                                         (Dict.values model.wordCounts)))
-             , spiralButtons model
              ])
 
 spiralButtons : Model -> List (Html Msg)
