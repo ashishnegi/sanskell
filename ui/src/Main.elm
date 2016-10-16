@@ -24,6 +24,7 @@ type StatusMsg = NoStatus
 type alias WordCloud = Dict String (Count, Weight, Position)
 type alias SpiralParams = { initial : (Float, Float)
                           , deltas  : (Float, Float)
+                          , acceleration : (Float, Float)
                           }
 
 type alias Model = { websiteUrl : URL
@@ -44,8 +45,10 @@ type Msg = WebsiteInput URL
          | CheckJobStatus
          | ChangeInitialR Float
          | ChangeInitialTheta Float
-         | ChangeInitialDeltaR Float
-         | ChangeInitialDeltaTheta Float
+         | ChangeDeltaR Float
+         | ChangeDeltaTheta Float
+         | ChangeAccelerationR Float
+         | ChangeAccelerationTheta Float
 
 type alias Dimension =
     { width : Int
@@ -71,7 +74,7 @@ main =
     }
 
 init : Flags -> ( Model, Cmd Msg)
-init flags = ( Model "" NoStatus Dict.empty Set.empty (SpiralParams (1, 1) (1.0, 10.0)), cmdFromFlags flags )
+init flags = ( Model "" NoStatus Dict.empty Set.empty (SpiralParams (1, 1) (1.0, 10.0) (-0.01, -0.01)), cmdFromFlags flags )
 
 cmdFromFlags : Flags -> Cmd Msg
 cmdFromFlags flags =
@@ -123,21 +126,32 @@ update msg model =
             |> List.map (\ jobId -> Task.perform StatusJobFailed StatusJobSuccess (Api.getJobStatusById jobId))
             |> Cmd.batch )
 
-        ChangeInitialR i -> let (x,y) = model.spiralParams.initial
-                                mSpiralParams = model.spiralParams
-                            in ( { model | spiralParams = { mSpiralParams | initial = (x + i, y) }}, Cmd.none)
+        ChangeInitialR i ->
+            let (x,y) = model.spiralParams.initial
+                mSpiralParams = model.spiralParams
+            in ( { model | spiralParams = { mSpiralParams | initial = (x + i, y) }}, Cmd.none)
+        ChangeInitialTheta i ->
+            let (x,y) = model.spiralParams.initial
+                mSpiralParams = model.spiralParams
+            in ( { model | spiralParams = { mSpiralParams | initial = (x, y + i) }}, Cmd.none)
 
-        ChangeInitialTheta i -> let (x,y) = model.spiralParams.initial
-                                    mSpiralParams = model.spiralParams
-                                in ( { model | spiralParams = { mSpiralParams | initial = (x, y + i) }}, Cmd.none)
+        ChangeDeltaR i ->
+            let (x,y) = model.spiralParams.deltas
+                mSpiralParams = model.spiralParams
+            in ( { model | spiralParams = { mSpiralParams | deltas = (x + i, y) }}, Cmd.none)
+        ChangeDeltaTheta i ->
+            let (x,y) = model.spiralParams.deltas
+                mSpiralParams = model.spiralParams
+            in ( { model | spiralParams = { mSpiralParams | deltas = (x, y + i) }}, Cmd.none)
 
-        ChangeInitialDeltaR i -> let (x,y) = model.spiralParams.deltas
-                                     mSpiralParams = model.spiralParams
-                                 in ( { model | spiralParams = { mSpiralParams | deltas = (x + i, y) }}, Cmd.none)
-
-        ChangeInitialDeltaTheta i -> let (x,y) = model.spiralParams.deltas
-                                         mSpiralParams = model.spiralParams
-                                     in ( { model | spiralParams = { mSpiralParams | deltas = (x, y + i) }}, Cmd.none)
+        ChangeAccelerationR i ->
+            let (x,y) = model.spiralParams.acceleration
+                mSpiralParams = model.spiralParams
+            in ( { model | spiralParams = { mSpiralParams | acceleration = (x + i, y) }}, Cmd.none)
+        ChangeAccelerationTheta i ->
+            let (x,y) = model.spiralParams.acceleration
+                mSpiralParams = model.spiralParams
+            in ( { model | spiralParams = { mSpiralParams | acceleration = (x, y + i) }}, Cmd.none)
 
 errorMsg : Http.Error -> String -> StatusMsg
 errorMsg error defaultMsg =
@@ -163,7 +177,7 @@ view model =
              , [ showStatusMsg model.statusMessage ]
 
              , (List.map wordCloud (List.map (\jobResult -> wordSpiralPositions jobResult (svgDimension jobResult.wordsCount)
-                                                                 model.spiralParams.initial model.spiralParams.deltas)
+                                                                 model.spiralParams.initial model.spiralParams.deltas model.spiralParams.acceleration)
                                         (Dict.values model.wordCounts)))
              -- , [ button
              --         [ onClick (JobResultSuccess (Api.JobResult 1 someWordsCount))  ]
@@ -176,6 +190,7 @@ spiralButtons : Model -> List (Html Msg)
 spiralButtons model =
     let (r, t) = model.spiralParams.initial
         (dr, dt) = model.spiralParams.deltas
+        (ddr, ddt) = model.spiralParams.acceleration
     in
     [ div []
         [ div []
@@ -198,20 +213,39 @@ spiralButtons model =
               ]
         , div []
               [ button
-                    [ onClick (ChangeInitialDeltaR 1)]
+                    [ onClick (ChangeDeltaR 1)]
                     [text "↑"]
               , text ("Δr : " ++ toString dr)
               , button
-                    [ onClick (ChangeInitialDeltaR -1)]
+                    [ onClick (ChangeDeltaR -1)]
                     [text "↓"]
               ]
         , div []
               [ button
-                    [ onClick (ChangeInitialDeltaTheta 1)]
+                    [ onClick (ChangeDeltaTheta 1)]
                     [text "↑"]
               , text ("Δθ : " ++ toString dt)
               , button
-                    [ onClick (ChangeInitialDeltaTheta -1)]
+                    [ onClick (ChangeDeltaTheta -1)]
+                    [text "↓"]
+              ]
+        , div []
+              [ button
+                    [ onClick (ChangeAccelerationR 0.005)]
+                    [text "↑"]
+              , text ("ΔΔr : " ++ toString ddr)
+              , button
+                    [ onClick (ChangeAccelerationR -0.005)]
+                    [text "↓"]
+              ]
+
+        , div []
+              [ button
+                    [ onClick (ChangeAccelerationTheta 0.005)]
+                    [text "↑"]
+              , text ("ΔΔθ : " ++ toString ddt)
+              , button
+                    [ onClick (ChangeAccelerationTheta -0.005)]
                     [text "↓"]
               ]
         ]]
@@ -265,10 +299,14 @@ wordCloud wordsCount =
                    , SvgA.height (toString dimension.height)
                    ]
 
-wordSpiralPositions : Api.JobResult -> Dimension -> (Float, Float) -> (Float, Float) -> WordCloud
-wordSpiralPositions jobResult dimension (initialR, initialTheta) (deltaR, deltaTheta) =
+wordSpiralPositions : Api.JobResult -> Dimension -> (Float, Float) -> (Float, Float) -> (Float, Float) -> WordCloud
+wordSpiralPositions jobResult dimension (initialR, initialTheta) (deltaR, deltaTheta) (accR, accTheta) =
     [1 .. Dict.size jobResult.wordsCount]
-        |> List.scanl (\ _ (r, t) -> (r + deltaR, t + deltaTheta)) (initialR, initialTheta)
+        |> List.scanl (\ _ (r, t) ->
+                           let newR = r + (deltaR * (1 + accR))
+                               newTheta = t + (deltaTheta * (1 + accTheta))
+                           in (newR, newTheta))
+                     (initialR, initialTheta)
         |> List.map (\ (r, t) -> (r * cos t, r * sin t))
         |> List.map (\ (x, y) -> (x + (toFloat dimension.width)/2, y + (toFloat dimension.height)/2))
         |> List.map (\ (x,y) -> Position (round x) (round y))
