@@ -26,7 +26,7 @@ startServer ST.Server{..} = do
     let jobRes = ST.JobResult jobId <$> wordMap
     Con.modifyMVar_ jobResults (\m -> return . M.insertWith changeResult jobId jobRes $ m)
     -- remove from pending request
-    Con.modifyMVar_ pendingJobs (return . DL.delete jobId)
+    Con.modifyMVar_ pendingJobs (return . DL.delete (jobId, url))
   where
     changeResult v1 v2 = case (v1, v2) of
        -- do not update if v2 failed.
@@ -41,15 +41,23 @@ addJob ST.Server{..} url = do
   let parsedUri = NU.parseURI url
   maybe (return . Left $ (S.err400 { S.errBody = "Bad Url" }))
     (\ _ -> do
-        jid <- Con.modifyMVar nextJobId $ \ (ST.JobId jid) -> do
-          nextUUID <- DU.nextRandom
-          return . (\a -> (a,a)) $ ST.JobId nextUUID
-        -- add to pending list
-        Con.modifyMVar_ pendingJobs (return . (:) jid)
-        -- put on a channel that would be read sequentially..
-        -- should be passing parsedUri => Just uri
-        Con.writeChan jobChan ( jid, url )
-        return $ Right jid)
+        pJobs <- Con.readMVar pendingJobs
+        let alreadyPending = DL.find ((== url) . snd) pJobs
+
+        case alreadyPending of
+          Nothing -> do
+            jid <- Con.modifyMVar nextJobId $ \ (ST.JobId jid) -> do
+              nextUUID <- DU.nextRandom
+              return . (\a -> (a,a)) $ ST.JobId nextUUID
+            -- add to pending list
+            Con.modifyMVar_ pendingJobs (return . (:) (jid, url))
+            -- put on a channel that would be read sequentially..
+            -- should be passing parsedUri => Just uri
+            Con.writeChan jobChan ( jid, url )
+            return $ Right jid
+
+          Just (jid, _) -> do
+            return $ Right jid )
     parsedUri
 
 jobResult :: ST.Server -> ST.JobId -> IO (Either T.Text ST.JobResult)
@@ -63,7 +71,7 @@ jobResult ST.Server{..} jobId = do
 jobStatus :: ST.Server -> ST.JobId -> IO (Either S.ServantErr ST.JobStatus)
 jobStatus ST.Server{..} jobId = do
   pJobs <- Con.readMVar pendingJobs
-  let pJob = DL.find (== jobId) pJobs
+  let pJob = DL.find ((== jobId) . fst) pJobs
   case pJob of
     -- in pending list..
     Just _ -> return . Right $ ST.JobStatus jobId (ST.Message (mkJobStatusUrl config jobId)) ST.Pending

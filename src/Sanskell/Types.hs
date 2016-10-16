@@ -52,7 +52,7 @@ data Server =
   Server
   { nextJobId   :: Con.MVar JobId
   , jobResults  :: Con.MVar ( M.Map JobId (Either T.Text JobResult))
-  , pendingJobs :: Con.MVar [ JobId ]
+  , pendingJobs :: Con.MVar [ (JobId, String) ]
   , jobChan     :: Con.Chan ( JobId, String )
   , config      :: Config
   }
