@@ -6912,7 +6912,7 @@ var _ashishnegi$sanskell$Api$encodeJobPostBody = function (x) {
 			}
 			]));
 };
-var _ashishnegi$sanskell$Api$decodeJobId = _elm_lang$core$Json_Decode$int;
+var _ashishnegi$sanskell$Api$decodeJobId = _elm_lang$core$Json_Decode$string;
 var _ashishnegi$sanskell$Api$postJob = function (body) {
 	var request = {
 		verb: 'POST',
@@ -6976,8 +6976,7 @@ var _ashishnegi$sanskell$Api$getJobById = function (id) {
 				A2(
 					_elm_lang$core$Basics_ops['++'],
 					'/',
-					_evancz$elm_http$Http$uriEncode(
-						_elm_lang$core$Basics$toString(id))))),
+					_evancz$elm_http$Http$uriEncode(id)))),
 		body: _evancz$elm_http$Http$empty
 	};
 	return A2(
@@ -7036,8 +7035,7 @@ var _ashishnegi$sanskell$Api$getJobStatusById = function (id) {
 						A2(
 							_elm_lang$core$Basics_ops['++'],
 							'/',
-							_evancz$elm_http$Http$uriEncode(
-								_elm_lang$core$Basics$toString(id))))))),
+							_evancz$elm_http$Http$uriEncode(id)))))),
 		body: _evancz$elm_http$Http$empty
 	};
 	return A2(
@@ -10784,7 +10782,7 @@ var _ashishnegi$sanskell$Main$main = {
 				_elm_lang$core$Native_List.fromArray(
 					[
 						_elm_lang$core$Json_Decode$null(_elm_lang$core$Maybe$Nothing),
-						A2(_elm_lang$core$Json_Decode$map, _elm_lang$core$Maybe$Just, _elm_lang$core$Json_Decode$int)
+						A2(_elm_lang$core$Json_Decode$map, _elm_lang$core$Maybe$Just, _elm_lang$core$Json_Decode$string)
 					]))),
 		function (jobId) {
 			return _elm_lang$core$Json_Decode$succeed(

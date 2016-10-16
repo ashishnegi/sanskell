@@ -10,10 +10,12 @@ import qualified Servant as S
 import Servant ((:>), (:<|>))
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Encoding as TLE
+import qualified Data.UUID as DU
 import qualified Sanskell.Types as ST
 import qualified Sanskell.Server as SS
 import qualified Control.Monad.IO.Class as CM
 import qualified Servant.Elm as SElm
+import qualified Elm as Elm
 
 import Debug.Trace
 
@@ -67,9 +69,14 @@ app server = S.serve jobApi (serverRouter server)
 --                     else apiApp req respond)
 
 instance S.FromHttpApiData ST.JobId where
-  parseUrlPiece t = ST.JobId <$> S.parseUrlPiece t
+  parseUrlPiece t =
+    case DU.fromText t of
+      Nothing -> Left "Could not parse uuid"
+      Just t' -> Right $ ST.JobId t'
 
-instance SElm.ElmType ST.JobId
+instance Elm.ElmType ST.JobId where
+  toElmType (ST.JobId jId) = Elm.Primitive "String"
+
 instance SElm.ElmType ST.JobStatus
 instance SElm.ElmType ST.Message
 instance SElm.ElmType ST.Error

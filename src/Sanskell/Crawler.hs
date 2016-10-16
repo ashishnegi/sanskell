@@ -11,6 +11,7 @@ import qualified Data.Set as DS
 import qualified Text.HTML.Scalpel as SP
 import qualified Data.List as DL
 import qualified System.FilePath.Posix as SFP
+import qualified Data.UUID.V4 as DU
 
 import Data.Maybe (catMaybes, fromJust)
 import Control.Monad (forM_, when, replicateM)
@@ -128,7 +129,8 @@ test :: IO ()
 test = do
   let uri = fromJust $ NU.parseURI "https://jaspervdj.be/hakyll/"
   chan <- Con.newChan
-  threadId <- Con.forkIO $ crawlingThread (ST.CrawlConfig 2 20) (ST.Link (ST.JobId 1) 1 uri) chan
+  uuid <- DU.nextRandom
+  threadId <- Con.forkIO $ crawlingThread (ST.CrawlConfig 2 20) (ST.Link (ST.JobId uuid) 1 uri) chan
 
   fix $ \loop -> do
     m <- Con.readChan chan

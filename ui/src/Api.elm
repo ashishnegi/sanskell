@@ -9,7 +9,7 @@ import Task
 import Dict exposing (Dict, fromList)
 
 type alias JobId
-  = Int
+  = String
 
 type alias JobStatus =
   { statusJobId : JobId
@@ -33,7 +33,7 @@ decodeJobStatus =
     |: ("jobState" := decodeJobState)
 
 decodeJobId : Json.Decode.Decoder JobId
-decodeJobId = Json.Decode.int
+decodeJobId = Json.Decode.string
 
 decodeMessage : Json.Decode.Decoder Message
 decodeMessage = Json.Decode.succeed Message |: ("msg" := Json.Decode.string)
@@ -57,7 +57,7 @@ getJobStatusById id =
       , url =
           "/" ++ "job"
           ++ "/" ++ "status"
-          ++ "/" ++ (id |> toString |> Http.uriEncode)
+          ++ "/" ++ (id |> Http.uriEncode)
       , body =
           Http.empty
       }
@@ -115,7 +115,7 @@ getJobById id =
           [("Content-Type", "application/json")]
       , url =
           "/" ++ "job"
-          ++ "/" ++ (id |> toString |> Http.uriEncode)
+          ++ "/" ++ (id |> Http.uriEncode)
       , body =
           Http.empty
       }

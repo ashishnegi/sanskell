@@ -11,11 +11,10 @@
           splitHref = href.split("job-id");
 
       // substr removes the = from "=12"
-      var jobId = (splitHref.length > 0) ? splitHref[splitHref.length - 1].substr(1) : null,
-          jobIdInt = parseInt(jobId);
-
+      var jobId = (splitHref.length > 1) ? splitHref[splitHref.length - 1].substr(1) : null;
+      console.log(jobId);
       Elm.Main.fullscreen({
-        "jobId" : isNaN(jobIdInt) ? null : jobIdInt
+        "jobId" : jobId
       });
     </script>
   </body>

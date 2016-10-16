@@ -64,7 +64,7 @@ type alias Position =
     }
 
 type alias Flags =
-    { jobId : Maybe Int }
+    { jobId : Maybe String }
 
 main =
     App.programWithFlags

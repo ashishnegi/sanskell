@@ -5,14 +5,15 @@ module Sanskell.Types where
 
 import qualified Network.URI as NU (URI)
 import qualified Control.Concurrent as Con (Chan, MVar)
-import qualified Data.Text as T (Text)
+import qualified Data.Text as T (Text, pack)
 import qualified Data.Map as M
+import qualified Data.UUID as DU
 import qualified Data.Aeson as A
 import Data.Aeson.Types ((.=))
 
 import GHC.Generics
 
-newtype JobId = JobId Int deriving (Eq, Ord, Show, Generic)
+newtype JobId = JobId DU.UUID deriving (Eq, Ord, Show, Generic)
 
 type DepthRemaining = Int
 
@@ -79,7 +80,7 @@ data JobStatus =
   deriving (Eq, Show, Generic)
 
 instance A.ToJSON JobId where
-  toJSON (JobId jId) = A.Number . fromInteger . toInteger $ jId
+  toJSON (JobId jId) = A.String . DU.toText $ jId
 
 instance A.ToJSON JobResult
 instance A.ToJSON Error

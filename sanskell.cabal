@@ -36,6 +36,7 @@ library
                      , aeson
                      , transformers
                      , filepath
+                     , uuid
   default-language:    Haskell2010
 
 executable sanskell-exe
@@ -48,6 +49,7 @@ executable sanskell-exe
                      , containers
                      , configurator
                      , wai-extra
+                     , uuid
   default-language:    Haskell2010
 
 test-suite sanskell-test

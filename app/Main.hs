@@ -9,6 +9,7 @@ import qualified Data.Configurator as DC
 import qualified Data.Maybe as DMay
 import qualified System.Environment as Env
 import qualified Data.Char as C
+import qualified Data.UUID.V4 as DU
 import qualified Network.Wai.Middleware.Gzip as Gzip
 
 import qualified Sanskell.Api as A
@@ -17,7 +18,8 @@ import qualified Sanskell.Server as SS
 
 start :: ST.Config -> IO ()
 start serverConfig = do
-  nextJobId   <- Con.newMVar (ST.JobId 1)
+  uuid        <- DU.nextRandom
+  nextJobId   <- Con.newMVar $ ST.JobId uuid
   jobResult   <- Con.newMVar M.empty
   pendingJobs <- Con.newMVar []
   jobChan     <- Con.newChan

@@ -15,6 +15,7 @@ import qualified Servant as S
 import qualified Data.List as DL
 import qualified Sanskell.Types as ST
 import qualified Sanskell.Words as SW
+import qualified Data.UUID.V4 as DU
 
 startServer :: ST.Server -> IO ()
 startServer ST.Server{..} = do
@@ -40,7 +41,9 @@ addJob ST.Server{..} url = do
   let parsedUri = NU.parseURI url
   maybe (return . Left $ (S.err400 { S.errBody = "Bad Url" }))
     (\ _ -> do
-        jid <- Con.modifyMVar nextJobId $ \ (ST.JobId jid) -> return . (\a -> (a,a)) $ ST.JobId (jid + 1)
+        jid <- Con.modifyMVar nextJobId $ \ (ST.JobId jid) -> do
+          nextUUID <- DU.nextRandom
+          return . (\a -> (a,a)) $ ST.JobId nextUUID
         -- add to pending list
         Con.modifyMVar_ pendingJobs (return . (:) jid)
         -- put on a channel that would be read sequentially..
