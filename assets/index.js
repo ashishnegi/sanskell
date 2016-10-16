@@ -10225,7 +10225,8 @@ var _ashishnegi$sanskell$Main$spiralButtons = function (model) {
 	var _p40 = model.spiralParams.initial;
 	var r = _p40._0;
 	var t = _p40._1;
-	return _elm_lang$core$Native_List.fromArray(
+	return _elm_lang$core$Dict$isEmpty(model.wordCounts) ? _elm_lang$core$Native_List.fromArray(
+		[]) : _elm_lang$core$Native_List.fromArray(
 		[
 			A2(
 			_elm_lang$html$Html$div,
@@ -10235,6 +10236,7 @@ var _ashishnegi$sanskell$Main$spiralButtons = function (model) {
 				]),
 			_elm_lang$core$Native_List.fromArray(
 				[
+					_elm_lang$html$Html$text('Changes values to play with word cloud :'),
 					A2(
 					_elm_lang$html$Html$div,
 					_elm_lang$core$Native_List.fromArray(

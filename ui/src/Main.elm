@@ -204,54 +204,56 @@ spiralButtons model =
     let (r, t) = model.spiralParams.initial
         (dr, dt) = model.spiralParams.deltas
         (ddr, ddt) = model.spiralParams.acceleration
-    in
-    [ div [ class "input-boxes"]
-        [ div []
-              [ text "r : "
-              , input [ onInput ChangeInitialR
-                      , placeholder (toString r)
-                      , value (toString r)
-                      ]
-                      []]
+    in if Dict.isEmpty model.wordCounts
+       then []
+       else [ div [ class "input-boxes"]
+                  [ text "Changes values to play with word cloud :"
+                  , div []
+                      [ text "r : "
+                      , input [ onInput ChangeInitialR
+                              , placeholder (toString r)
+                              , value (toString r)
+                              ]
+                            []]
 
-        , div []
-              [ text "θ : "
-              , input [ onInput ChangeInitialTheta
-                      , placeholder (toString t)
-                      , value (toString t)
-                      ]
-                      []]
+                  , div []
+                      [ text "θ : "
+                      , input [ onInput ChangeInitialTheta
+                              , placeholder (toString t)
+                              , value (toString t)
+                              ]
+                            []]
 
-        , div []
-              [ text "Δr : "
-              , input [ onInput ChangeDeltaR
-                      , placeholder (toString dr)
-                      , value (toString dr)
-                      ]
-                      []]
-        , div []
-              [ text "Δθ : "
-              , input [ onInput ChangeDeltaTheta
-                      , placeholder (toString dt)
-                      , value (toString dt)
-                      ]
-                      []]
+                  , div []
+                      [ text "Δr : "
+                      , input [ onInput ChangeDeltaR
+                              , placeholder (toString dr)
+                              , value (toString dr)
+                              ]
+                            []]
+                  , div []
+                      [ text "Δθ : "
+                      , input [ onInput ChangeDeltaTheta
+                              , placeholder (toString dt)
+                              , value (toString dt)
+                              ]
+                            []]
 
-        , div []
-              [ text "ΔΔr : "
-              , input [ onInput ChangeAccelerationR
-                      , placeholder (toString ddr)
-                      , value (toString ddr)
+                  , div []
+                      [ text "ΔΔr : "
+                      , input [ onInput ChangeAccelerationR
+                              , placeholder (toString ddr)
+                              , value (toString ddr)
                       ]
                       []]
-        , div []
-              [ text "ΔΔθ : "
-              , input [ onInput ChangeAccelerationTheta
-                      , placeholder (toString ddt)
-                      , value (toString ddt)
-                      ]
+                  , div []
+                      [ text "ΔΔθ : "
+                      , input [ onInput ChangeAccelerationTheta
+                              , placeholder (toString ddt)
+                              , value (toString ddt)
+                              ]
                       []]
-        ]]
+                  ]]
 
 showStatusMsg : StatusMsg -> Html Msg
 showStatusMsg statusMsg =
