@@ -350,7 +350,6 @@ makeWordCloud jobResult positions =
             let weights = jobResult.wordsCount
                         |> Dict.values
                         |> List.sort
-                        |> Debug.log "sorted weights : "
                 avgWeight = List.sum weights / toFloat (List.length weights) |> Debug.log "avgWeight: "
                 minWeight = List.minimum weights |> Maybe.withDefault 0 |> Debug.log "minWeight: "
                 diffWeight = avgWeight - minWeight + 1

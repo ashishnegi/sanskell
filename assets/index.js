@@ -9858,11 +9858,8 @@ var _ashishnegi$sanskell$Main$makeWordCloud = F2(
 		if (_p0.ctor === '[]') {
 			return _elm_lang$core$Dict$empty;
 		} else {
-			var weights = A2(
-				_elm_lang$core$Debug$log,
-				'sorted weights : ',
-				_elm_lang$core$List$sort(
-					_elm_lang$core$Dict$values(jobResult.wordsCount)));
+			var weights = _elm_lang$core$List$sort(
+				_elm_lang$core$Dict$values(jobResult.wordsCount));
 			var avgWeight = A2(
 				_elm_lang$core$Debug$log,
 				'avgWeight: ',

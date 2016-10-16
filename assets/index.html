@@ -12,7 +12,6 @@
 
       // substr removes the = from "=12"
       var jobId = (splitHref.length > 1) ? splitHref[splitHref.length - 1].substr(1) : null;
-      console.log(jobId);
       Elm.Main.fullscreen({
         "jobId" : jobId
       });
