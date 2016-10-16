@@ -16,7 +16,6 @@ start server with :
 `stack exec sanskell-exe`
 
 ## Todo
-*. Adds results to the filesystem for persistence.
 1. Have timeout for "crawling thread" in case it never returns..
    Add logging/exception handling in server : sometimes seems to not work.
 2. Have job start/finish time in JobResult.

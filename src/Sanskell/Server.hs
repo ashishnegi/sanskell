@@ -8,6 +8,9 @@ import qualified Network.Wai
 
 import qualified Network.URI as NU
 import qualified Data.Text as T
+import qualified Data.Text.Lazy as TL
+import qualified Data.Text.IO as TIO
+import qualified Data.Text.Lazy.Encoding as TLE
 import qualified Control.Concurrent as Con
 import qualified Data.Map as M
 import qualified Control.Monad as CM (forever, void)
@@ -15,18 +18,22 @@ import qualified Servant as S
 import qualified Data.List as DL
 import qualified Sanskell.Types as ST
 import qualified Sanskell.Words as SW
+import qualified Data.Aeson as A
 import qualified Data.UUID.V4 as DU
 
 startServer :: ST.Server -> IO ()
 startServer ST.Server{..} = do
   CM.void $ Con.forkIO $ CM.forever $ do
     (jobId, url) <- Con.readChan jobChan
-    -- block to serve one crawl request at a time..
-    wordMap <- SW.wordCloudOfWebsite url jobId
-    let jobRes = ST.JobResult jobId <$> wordMap
-    Con.modifyMVar_ jobResults (\m -> return . M.insertWith changeResult jobId jobRes $ m)
-    -- remove from pending request
-    Con.modifyMVar_ pendingJobs (return . DL.delete (jobId, url))
+    Con.forkIO $ do
+       wordMap <- SW.wordCloudOfWebsite url jobId
+       let jobRes = ST.JobResult jobId <$> wordMap
+       Con.modifyMVar_ jobResults (\m -> return . M.insertWith changeResult jobId jobRes $ m)
+       -- remove from pending request
+       Con.modifyMVar_ pendingJobs (return . DL.delete (jobId, url))
+       -- write result to the disk
+       let ST.JobId jId = jobId
+       TIO.writeFile (show jId ++ ".jobresult") $ TL.toStrict . TLE.decodeUtf8 . A.encode $ jobRes
   where
     changeResult v1 v2 = case (v1, v2) of
        -- do not update if v2 failed.
