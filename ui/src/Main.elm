@@ -280,9 +280,20 @@ subscriptions : Model -> Sub Msg
 subscriptions model =
     timeSubs model
 
-svgDimension : Dict a b -> Dimension
-svgDimension d = let dsize = Dict.size d |> (*) 3 >> max 500 >> min 1200
-                 in Dimension dsize (round ((toFloat dsize) / 1.5))
+svgDimension : WordCloud -> Dimension
+svgDimension wordCloud =
+    let positions = wordCloud
+                    |> Dict.values
+                    |> List.map (\ (_,_,p) -> (p.x, p.y))
+        allXs = List.map (\ (x,y) -> x) positions
+        maxX = Maybe.withDefault 0 (List.maximum allXs)
+        minX = Maybe.withDefault 0 (List.minimum allXs)
+        allYs = List.map (\ (x,y) -> y) positions
+        maxY = Maybe.withDefault 0 (List.maximum allYs)
+        minY = Maybe.withDefault 0 (List.minimum allYs)
+        width = abs(maxX - minX)
+        height = abs(maxY - minY)
+    in Dimension (round width + 1) (round height + 1)
 
 wordCloud : WordCloud -> Html Msg
 wordCloud wordsCount =

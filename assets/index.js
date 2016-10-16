@@ -9989,28 +9989,51 @@ var _ashishnegi$sanskell$Main$Dimension = F2(
 	function (a, b) {
 		return {width: a, height: b};
 	});
-var _ashishnegi$sanskell$Main$svgDimension = function (d) {
-	var dsize = function (_p7) {
-		return A2(
-			_elm_lang$core$Basics$min,
-			1200,
-			A2(
-				_elm_lang$core$Basics$max,
-				500,
-				A2(
-					F2(
-						function (x, y) {
-							return x * y;
-						}),
-					3,
-					_p7)));
-	}(
-		_elm_lang$core$Dict$size(d));
+var _ashishnegi$sanskell$Main$svgDimension = function (wordCloud) {
+	var positions = A2(
+		_elm_lang$core$List$map,
+		function (_p7) {
+			var _p8 = _p7;
+			var _p9 = _p8._2;
+			return {ctor: '_Tuple2', _0: _p9.x, _1: _p9.y};
+		},
+		_elm_lang$core$Dict$values(wordCloud));
+	var allXs = A2(
+		_elm_lang$core$List$map,
+		function (_p10) {
+			var _p11 = _p10;
+			return _p11._0;
+		},
+		positions);
+	var maxX = A2(
+		_elm_lang$core$Maybe$withDefault,
+		0,
+		_elm_lang$core$List$maximum(allXs));
+	var minX = A2(
+		_elm_lang$core$Maybe$withDefault,
+		0,
+		_elm_lang$core$List$minimum(allXs));
+	var width = _elm_lang$core$Basics$abs(maxX - minX);
+	var allYs = A2(
+		_elm_lang$core$List$map,
+		function (_p12) {
+			var _p13 = _p12;
+			return _p13._1;
+		},
+		positions);
+	var maxY = A2(
+		_elm_lang$core$Maybe$withDefault,
+		0,
+		_elm_lang$core$List$maximum(allYs));
+	var minY = A2(
+		_elm_lang$core$Maybe$withDefault,
+		0,
+		_elm_lang$core$List$minimum(allYs));
+	var height = _elm_lang$core$Basics$abs(maxY - minY);
 	return A2(
 		_ashishnegi$sanskell$Main$Dimension,
-		dsize,
-		_elm_lang$core$Basics$round(
-			_elm_lang$core$Basics$toFloat(dsize) / 1.5));
+		_elm_lang$core$Basics$round(width) + 1,
+		_elm_lang$core$Basics$round(height) + 1);
 };
 var _ashishnegi$sanskell$Main$wordCloud = function (wordsCount) {
 	var dimension = _ashishnegi$sanskell$Main$svgDimension(wordsCount);
@@ -10025,9 +10048,9 @@ var _ashishnegi$sanskell$Main$wordCloud = function (wordsCount) {
 			]),
 		A2(
 			_elm_lang$core$List$map,
-			function (_p8) {
-				var _p9 = _p8;
-				var _p10 = _p9._1._2;
+			function (_p14) {
+				var _p15 = _p14;
+				var _p16 = _p15._1._2;
 				return A2(
 					_elm_lang$svg$Svg$g,
 					_elm_lang$core$Native_List.fromArray(
@@ -10040,15 +10063,15 @@ var _ashishnegi$sanskell$Main$wordCloud = function (wordsCount) {
 								[
 									_elm_lang$svg$Svg_Attributes$fill('red'),
 									_elm_lang$svg$Svg_Attributes$x(
-									_elm_lang$core$Basics$toString(_p10.x)),
+									_elm_lang$core$Basics$toString(_p16.x)),
 									_elm_lang$svg$Svg_Attributes$y(
-									_elm_lang$core$Basics$toString(_p10.y)),
+									_elm_lang$core$Basics$toString(_p16.y)),
 									_elm_lang$svg$Svg_Attributes$fontSize(
-									_elm_lang$core$Basics$toString(_p9._1._1))
+									_elm_lang$core$Basics$toString(_p15._1._1))
 								]),
 							_elm_lang$core$Native_List.fromArray(
 								[
-									_elm_lang$svg$Svg$text(_p9._0)
+									_elm_lang$svg$Svg$text(_p15._0)
 								]))
 						]));
 			},
@@ -10059,36 +10082,36 @@ var _ashishnegi$sanskell$Main$Position = F2(
 		return {x: a, y: b};
 	});
 var _ashishnegi$sanskell$Main$wordSpiralPositions = F2(
-	function (jobResult, _p11) {
-		var _p12 = _p11;
-		var _p13 = _p12.acceleration;
-		var accR = _p13._0;
-		var accTheta = _p13._1;
-		var _p14 = _p12.deltas;
-		var deltaR = _p14._0;
-		var deltaTheta = _p14._1;
-		var _p15 = _p12.initial;
-		var initialR = _p15._0;
-		var initialTheta = _p15._1;
+	function (jobResult, _p17) {
+		var _p18 = _p17;
+		var _p19 = _p18.acceleration;
+		var accR = _p19._0;
+		var accTheta = _p19._1;
+		var _p20 = _p18.deltas;
+		var deltaR = _p20._0;
+		var deltaTheta = _p20._1;
+		var _p21 = _p18.initial;
+		var initialR = _p21._0;
+		var initialTheta = _p21._1;
 		var positions = A2(
 			_elm_lang$core$List$map,
-			function (_p16) {
-				var _p17 = _p16;
-				var _p19 = _p17._1;
-				var _p18 = _p17._0;
+			function (_p22) {
+				var _p23 = _p22;
+				var _p25 = _p23._1;
+				var _p24 = _p23._0;
 				return {
 					ctor: '_Tuple2',
-					_0: _p18 * _elm_lang$core$Basics$cos(_p19),
-					_1: _p18 * _elm_lang$core$Basics$sin(_p19)
+					_0: _p24 * _elm_lang$core$Basics$cos(_p25),
+					_1: _p24 * _elm_lang$core$Basics$sin(_p25)
 				};
 			},
 			A3(
 				_elm_lang$core$List$scanl,
 				F2(
-					function (_p21, _p20) {
-						var _p22 = _p20;
-						var newTheta = _p22._1 + (deltaTheta * (1 + accTheta));
-						var newR = _p22._0 + (deltaR * (1 + accR));
+					function (_p27, _p26) {
+						var _p28 = _p26;
+						var newTheta = _p28._1 + (deltaTheta * (1 + accTheta));
+						var newR = _p28._0 + (deltaR * (1 + accR));
 						return {ctor: '_Tuple2', _0: newR, _1: newTheta};
 					}),
 				{ctor: '_Tuple2', _0: initialR, _1: initialTheta},
@@ -10097,9 +10120,9 @@ var _ashishnegi$sanskell$Main$wordSpiralPositions = F2(
 					_elm_lang$core$Dict$size(jobResult.wordsCount))));
 		var allXs = A2(
 			_elm_lang$core$List$map,
-			function (_p23) {
-				var _p24 = _p23;
-				return _p24._0;
+			function (_p29) {
+				var _p30 = _p29;
+				return _p30._0;
 			},
 			positions);
 		var maxX = A2(
@@ -10113,9 +10136,9 @@ var _ashishnegi$sanskell$Main$wordSpiralPositions = F2(
 		var width = _elm_lang$core$Basics$abs(maxX - minX);
 		var allYs = A2(
 			_elm_lang$core$List$map,
-			function (_p25) {
-				var _p26 = _p25;
-				return _p26._1;
+			function (_p31) {
+				var _p32 = _p31;
+				return _p32._1;
 			},
 			positions);
 		var maxY = A2(
@@ -10132,18 +10155,18 @@ var _ashishnegi$sanskell$Main$wordSpiralPositions = F2(
 			jobResult,
 			A2(
 				_elm_lang$core$List$map,
-				function (_p27) {
-					var _p28 = _p27;
+				function (_p33) {
+					var _p34 = _p33;
 					return A2(
 						_ashishnegi$sanskell$Main$Position,
-						_elm_lang$core$Basics$round(_p28._0),
-						_elm_lang$core$Basics$round(_p28._1));
+						_elm_lang$core$Basics$round(_p34._0),
+						_elm_lang$core$Basics$round(_p34._1));
 				},
 				A2(
 					_elm_lang$core$List$map,
-					function (_p29) {
-						var _p30 = _p29;
-						return {ctor: '_Tuple2', _0: _p30._0 + (width / 2), _1: _p30._1 + (height / 2)};
+					function (_p35) {
+						var _p36 = _p35;
+						return {ctor: '_Tuple2', _0: _p36._0 + (width / 2), _1: _p36._1 + (height / 2)};
 					},
 					positions)));
 	});
@@ -10159,13 +10182,13 @@ var _ashishnegi$sanskell$Main$ErrorMessage = function (a) {
 };
 var _ashishnegi$sanskell$Main$errorMsg = F2(
 	function (error, defaultMsg) {
-		var _p31 = error;
-		if (_p31.ctor === 'BadResponse') {
+		var _p37 = error;
+		if (_p37.ctor === 'BadResponse') {
 			return _ashishnegi$sanskell$Main$ErrorMessage(
 				A2(
 					_elm_lang$core$Basics_ops['++'],
 					defaultMsg,
-					A2(_elm_lang$core$Basics_ops['++'], ' : ', _p31._1)));
+					A2(_elm_lang$core$Basics_ops['++'], ' : ', _p37._1)));
 		} else {
 			return _ashishnegi$sanskell$Main$ErrorMessage(defaultMsg);
 		}
@@ -10193,15 +10216,15 @@ var _ashishnegi$sanskell$Main$ChangeInitialR = function (a) {
 	return {ctor: 'ChangeInitialR', _0: a};
 };
 var _ashishnegi$sanskell$Main$spiralButtons = function (model) {
-	var _p32 = model.spiralParams.acceleration;
-	var ddr = _p32._0;
-	var ddt = _p32._1;
-	var _p33 = model.spiralParams.deltas;
-	var dr = _p33._0;
-	var dt = _p33._1;
-	var _p34 = model.spiralParams.initial;
-	var r = _p34._0;
-	var t = _p34._1;
+	var _p38 = model.spiralParams.acceleration;
+	var ddr = _p38._0;
+	var ddt = _p38._1;
+	var _p39 = model.spiralParams.deltas;
+	var dr = _p39._0;
+	var dt = _p39._1;
+	var _p40 = model.spiralParams.initial;
+	var r = _p40._0;
+	var t = _p40._1;
 	return _elm_lang$core$Native_List.fromArray(
 		[
 			A2(
@@ -10340,7 +10363,7 @@ var _ashishnegi$sanskell$Main$timeSubs = function (model) {
 	return _elm_lang$core$Set$isEmpty(model.pendingRequests) ? _elm_lang$core$Platform_Sub$none : A2(
 		_elm_lang$core$Time$every,
 		2 * _elm_lang$core$Time$second,
-		function (_p35) {
+		function (_p41) {
 			return _ashishnegi$sanskell$Main$CheckJobStatus;
 		});
 };
@@ -10399,14 +10422,14 @@ var _ashishnegi$sanskell$Main$PostJobSuccess = function (a) {
 };
 var _ashishnegi$sanskell$Main$update = F2(
 	function (msg, model) {
-		var _p36 = msg;
-		switch (_p36.ctor) {
+		var _p42 = msg;
+		switch (_p42.ctor) {
 			case 'WebsiteInput':
 				return {
 					ctor: '_Tuple2',
 					_0: _elm_lang$core$Native_Utils.update(
 						model,
-						{websiteUrl: _p36._0}),
+						{websiteUrl: _p42._0}),
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
 			case 'PostJob':
@@ -10432,7 +10455,7 @@ var _ashishnegi$sanskell$Main$update = F2(
 						_elm_lang$core$Task$perform,
 						_ashishnegi$sanskell$Main$StatusJobFailed,
 						_ashishnegi$sanskell$Main$StatusJobSuccess,
-						_ashishnegi$sanskell$Api$getJobStatusById(_p36._0))
+						_ashishnegi$sanskell$Api$getJobStatusById(_p42._0))
 				};
 			case 'PostJobFailed':
 				return {
@@ -10440,46 +10463,46 @@ var _ashishnegi$sanskell$Main$update = F2(
 					_0: _elm_lang$core$Native_Utils.update(
 						model,
 						{
-							statusMessage: A2(_ashishnegi$sanskell$Main$errorMsg, _p36._0, 'Failed to post job. Please try after some time.')
+							statusMessage: A2(_ashishnegi$sanskell$Main$errorMsg, _p42._0, 'Failed to post job. Please try after some time.')
 						}),
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
 			case 'StatusJobSuccess':
-				var _p39 = _p36._0;
-				var _p37 = function () {
-					var _p38 = _p39.jobState;
-					switch (_p38.ctor) {
+				var _p45 = _p42._0;
+				var _p43 = function () {
+					var _p44 = _p45.jobState;
+					switch (_p44.ctor) {
 						case 'Pending':
 							return {
 								ctor: '_Tuple3',
-								_0: A2(_ashishnegi$sanskell$Main$URLMessage, 'Still working on your job: ', _p39.jobResult.message),
+								_0: A2(_ashishnegi$sanskell$Main$URLMessage, 'Still working on your job: ', _p45.jobResult.message),
 								_1: _elm_lang$core$Platform_Cmd$none,
 								_2: true
 							};
 						case 'Finished':
 							return {
 								ctor: '_Tuple3',
-								_0: A2(_ashishnegi$sanskell$Main$URLMessage, 'You can view the word cloud at: ', _p39.jobResult.message),
+								_0: A2(_ashishnegi$sanskell$Main$URLMessage, 'You can view the word cloud at: ', _p45.jobResult.message),
 								_1: A3(
 									_elm_lang$core$Task$perform,
 									_ashishnegi$sanskell$Main$JobResultFailed,
 									_ashishnegi$sanskell$Main$JobResultSuccess,
-									_ashishnegi$sanskell$Api$getJobById(_p39.statusJobId)),
+									_ashishnegi$sanskell$Api$getJobById(_p45.statusJobId)),
 								_2: false
 							};
 						default:
 							return {
 								ctor: '_Tuple3',
-								_0: _ashishnegi$sanskell$Main$ErrorMessage(_p39.jobResult.message),
+								_0: _ashishnegi$sanskell$Main$ErrorMessage(_p45.jobResult.message),
 								_1: _elm_lang$core$Platform_Cmd$none,
 								_2: false
 							};
 					}
 				}();
-				var msg = _p37._0;
-				var cmd = _p37._1;
-				var pending = _p37._2;
-				var pendingRequests = pending ? A2(_elm_lang$core$Set$insert, _p39.statusJobId, model.pendingRequests) : A2(_elm_lang$core$Set$remove, _p39.statusJobId, model.pendingRequests);
+				var msg = _p43._0;
+				var cmd = _p43._1;
+				var pending = _p43._2;
+				var pendingRequests = pending ? A2(_elm_lang$core$Set$insert, _p45.statusJobId, model.pendingRequests) : A2(_elm_lang$core$Set$remove, _p45.statusJobId, model.pendingRequests);
 				return {
 					ctor: '_Tuple2',
 					_0: _elm_lang$core$Native_Utils.update(
@@ -10493,18 +10516,18 @@ var _ashishnegi$sanskell$Main$update = F2(
 					_0: _elm_lang$core$Native_Utils.update(
 						model,
 						{
-							statusMessage: A2(_ashishnegi$sanskell$Main$errorMsg, _p36._0, 'Failed to get job status. Please try again.')
+							statusMessage: A2(_ashishnegi$sanskell$Main$errorMsg, _p42._0, 'Failed to get job status. Please try again.')
 						}),
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
 			case 'JobResultSuccess':
-				var _p40 = _p36._0;
+				var _p46 = _p42._0;
 				return {
 					ctor: '_Tuple2',
 					_0: _elm_lang$core$Native_Utils.update(
 						model,
 						{
-							wordCounts: A3(_elm_lang$core$Dict$insert, _p40.resultJobId, _p40, model.wordCounts)
+							wordCounts: A3(_elm_lang$core$Dict$insert, _p46.resultJobId, _p46, model.wordCounts)
 						}),
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
@@ -10514,7 +10537,7 @@ var _ashishnegi$sanskell$Main$update = F2(
 					_0: _elm_lang$core$Native_Utils.update(
 						model,
 						{
-							statusMessage: A2(_ashishnegi$sanskell$Main$errorMsg, _p36._0, 'Failed to get data. Please try again.')
+							statusMessage: A2(_ashishnegi$sanskell$Main$errorMsg, _p42._0, 'Failed to get data. Please try again.')
 						}),
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
@@ -10535,79 +10558,10 @@ var _ashishnegi$sanskell$Main$update = F2(
 							_elm_lang$core$Set$toList(model.pendingRequests)))
 				};
 			case 'ChangeInitialR':
-				var _p41 = _elm_lang$core$String$toFloat(_p36._0);
-				if (_p41.ctor === 'Ok') {
-					var mSpiralParams = model.spiralParams;
-					var _p42 = model.spiralParams.initial;
-					var x = _p42._0;
-					var y = _p42._1;
-					return {
-						ctor: '_Tuple2',
-						_0: _elm_lang$core$Native_Utils.update(
-							model,
-							{
-								spiralParams: _elm_lang$core$Native_Utils.update(
-									mSpiralParams,
-									{
-										initial: {ctor: '_Tuple2', _0: _p41._0, _1: y}
-									})
-							}),
-						_1: _elm_lang$core$Platform_Cmd$none
-					};
-				} else {
-					return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
-				}
-			case 'ChangeInitialTheta':
-				var _p43 = _elm_lang$core$String$toFloat(_p36._0);
-				if (_p43.ctor === 'Ok') {
-					var mSpiralParams = model.spiralParams;
-					var _p44 = model.spiralParams.initial;
-					var x = _p44._0;
-					var y = _p44._1;
-					return {
-						ctor: '_Tuple2',
-						_0: _elm_lang$core$Native_Utils.update(
-							model,
-							{
-								spiralParams: _elm_lang$core$Native_Utils.update(
-									mSpiralParams,
-									{
-										initial: {ctor: '_Tuple2', _0: x, _1: _p43._0}
-									})
-							}),
-						_1: _elm_lang$core$Platform_Cmd$none
-					};
-				} else {
-					return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
-				}
-			case 'ChangeDeltaR':
-				var _p45 = _elm_lang$core$String$toFloat(_p36._0);
-				if (_p45.ctor === 'Ok') {
-					var mSpiralParams = model.spiralParams;
-					var _p46 = model.spiralParams.deltas;
-					var x = _p46._0;
-					var y = _p46._1;
-					return {
-						ctor: '_Tuple2',
-						_0: _elm_lang$core$Native_Utils.update(
-							model,
-							{
-								spiralParams: _elm_lang$core$Native_Utils.update(
-									mSpiralParams,
-									{
-										deltas: {ctor: '_Tuple2', _0: _p45._0, _1: y}
-									})
-							}),
-						_1: _elm_lang$core$Platform_Cmd$none
-					};
-				} else {
-					return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
-				}
-			case 'ChangeDeltaTheta':
-				var _p47 = _elm_lang$core$String$toFloat(_p36._0);
+				var _p47 = _elm_lang$core$String$toFloat(_p42._0);
 				if (_p47.ctor === 'Ok') {
 					var mSpiralParams = model.spiralParams;
-					var _p48 = model.spiralParams.deltas;
+					var _p48 = model.spiralParams.initial;
 					var x = _p48._0;
 					var y = _p48._1;
 					return {
@@ -10618,7 +10572,7 @@ var _ashishnegi$sanskell$Main$update = F2(
 								spiralParams: _elm_lang$core$Native_Utils.update(
 									mSpiralParams,
 									{
-										deltas: {ctor: '_Tuple2', _0: x, _1: _p47._0}
+										initial: {ctor: '_Tuple2', _0: _p47._0, _1: y}
 									})
 							}),
 						_1: _elm_lang$core$Platform_Cmd$none
@@ -10626,11 +10580,11 @@ var _ashishnegi$sanskell$Main$update = F2(
 				} else {
 					return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
 				}
-			case 'ChangeAccelerationR':
-				var _p49 = _elm_lang$core$String$toFloat(_p36._0);
+			case 'ChangeInitialTheta':
+				var _p49 = _elm_lang$core$String$toFloat(_p42._0);
 				if (_p49.ctor === 'Ok') {
 					var mSpiralParams = model.spiralParams;
-					var _p50 = model.spiralParams.acceleration;
+					var _p50 = model.spiralParams.initial;
 					var x = _p50._0;
 					var y = _p50._1;
 					return {
@@ -10641,7 +10595,7 @@ var _ashishnegi$sanskell$Main$update = F2(
 								spiralParams: _elm_lang$core$Native_Utils.update(
 									mSpiralParams,
 									{
-										acceleration: {ctor: '_Tuple2', _0: _p49._0, _1: y}
+										initial: {ctor: '_Tuple2', _0: x, _1: _p49._0}
 									})
 							}),
 						_1: _elm_lang$core$Platform_Cmd$none
@@ -10649,11 +10603,11 @@ var _ashishnegi$sanskell$Main$update = F2(
 				} else {
 					return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
 				}
-			default:
-				var _p51 = _elm_lang$core$String$toFloat(_p36._0);
+			case 'ChangeDeltaR':
+				var _p51 = _elm_lang$core$String$toFloat(_p42._0);
 				if (_p51.ctor === 'Ok') {
 					var mSpiralParams = model.spiralParams;
-					var _p52 = model.spiralParams.acceleration;
+					var _p52 = model.spiralParams.deltas;
 					var x = _p52._0;
 					var y = _p52._1;
 					return {
@@ -10664,7 +10618,76 @@ var _ashishnegi$sanskell$Main$update = F2(
 								spiralParams: _elm_lang$core$Native_Utils.update(
 									mSpiralParams,
 									{
-										acceleration: {ctor: '_Tuple2', _0: x, _1: _p51._0}
+										deltas: {ctor: '_Tuple2', _0: _p51._0, _1: y}
+									})
+							}),
+						_1: _elm_lang$core$Platform_Cmd$none
+					};
+				} else {
+					return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+				}
+			case 'ChangeDeltaTheta':
+				var _p53 = _elm_lang$core$String$toFloat(_p42._0);
+				if (_p53.ctor === 'Ok') {
+					var mSpiralParams = model.spiralParams;
+					var _p54 = model.spiralParams.deltas;
+					var x = _p54._0;
+					var y = _p54._1;
+					return {
+						ctor: '_Tuple2',
+						_0: _elm_lang$core$Native_Utils.update(
+							model,
+							{
+								spiralParams: _elm_lang$core$Native_Utils.update(
+									mSpiralParams,
+									{
+										deltas: {ctor: '_Tuple2', _0: x, _1: _p53._0}
+									})
+							}),
+						_1: _elm_lang$core$Platform_Cmd$none
+					};
+				} else {
+					return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+				}
+			case 'ChangeAccelerationR':
+				var _p55 = _elm_lang$core$String$toFloat(_p42._0);
+				if (_p55.ctor === 'Ok') {
+					var mSpiralParams = model.spiralParams;
+					var _p56 = model.spiralParams.acceleration;
+					var x = _p56._0;
+					var y = _p56._1;
+					return {
+						ctor: '_Tuple2',
+						_0: _elm_lang$core$Native_Utils.update(
+							model,
+							{
+								spiralParams: _elm_lang$core$Native_Utils.update(
+									mSpiralParams,
+									{
+										acceleration: {ctor: '_Tuple2', _0: _p55._0, _1: y}
+									})
+							}),
+						_1: _elm_lang$core$Platform_Cmd$none
+					};
+				} else {
+					return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+				}
+			default:
+				var _p57 = _elm_lang$core$String$toFloat(_p42._0);
+				if (_p57.ctor === 'Ok') {
+					var mSpiralParams = model.spiralParams;
+					var _p58 = model.spiralParams.acceleration;
+					var x = _p58._0;
+					var y = _p58._1;
+					return {
+						ctor: '_Tuple2',
+						_0: _elm_lang$core$Native_Utils.update(
+							model,
+							{
+								spiralParams: _elm_lang$core$Native_Utils.update(
+									mSpiralParams,
+									{
+										acceleration: {ctor: '_Tuple2', _0: x, _1: _p57._0}
 									})
 							}),
 						_1: _elm_lang$core$Platform_Cmd$none
