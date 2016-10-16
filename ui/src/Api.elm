@@ -96,14 +96,16 @@ postJob body =
 
 type alias JobResult =
   { resultJobId : JobId
+  , jobResultUrl : String
   , wordsCount  : Dict String Float
   }
 
 decodeJobResult : Json.Decode.Decoder JobResult
 decodeJobResult =
   Json.Decode.succeed JobResult
-    |: ("resultJobId" := decodeJobId)
-    |: ("wordsCount" := Json.Decode.dict Json.Decode.float)
+    |: ("resultJobId"  := decodeJobId)
+    |: ("jobResultUrl" := Json.Decode.string)
+    |: ("wordsCount"   := Json.Decode.dict Json.Decode.float)
 
 getJobById : JobId -> Task.Task Http.Error (JobResult)
 getJobById id =
@@ -122,4 +124,22 @@ getJobById id =
   in
     Http.fromJson
       decodeJobResult
+      (Http.send Http.defaultSettings request)
+
+getJobs : Task.Task Http.Error (List JobId)
+getJobs =
+  let
+    request =
+      { verb =
+          "GET"
+      , headers =
+          [("Content-Type", "application/json")]
+      , url =
+          "/" ++ "jobs"
+      , body =
+          Http.empty
+      }
+  in
+    Http.fromJson
+      (Json.Decode.list decodeJobId)
       (Http.send Http.defaultSettings request)

@@ -22,6 +22,7 @@ import Debug.Trace
 type JobApi = "job" :> "status" :> S.Capture "id" ST.JobId :> S.Get '[S.JSON] ST.JobStatus
          :<|> "job" :> S.ReqBody '[S.JSON] ST.JobPostBody :> S.Post '[S.JSON] ST.JobId
          :<|> "job" :> S.Capture "id" ST.JobId :> S.Get '[S.JSON] ST.JobResult
+         :<|> "jobs" :> S.Get '[ S.JSON ] [ ST.JobId ]
          :<|> S.Raw
 
 jobApi :: S.Proxy JobApi
@@ -31,6 +32,7 @@ serverRouter :: ST.Server -> S.Server JobApi
 serverRouter server = statusGet
     S.:<|> jobPost
     S.:<|> jobGet
+    S.:<|> jobsList
     S.:<|> S.serveDirectory "assets"
   where
     jobGet :: ST.JobId -> S.Handler ST.JobResult
@@ -55,6 +57,10 @@ serverRouter server = statusGet
       case res of
         Left e -> S.throwError e
         Right v -> return v
+
+    jobsList :: S.Handler [ ST.JobId ]
+    jobsList = do
+      CM.liftIO $ SS.jobsList server
 
 app :: ST.Server -> NW.Application
 app server = S.serve jobApi (serverRouter server)

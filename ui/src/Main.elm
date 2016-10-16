@@ -32,6 +32,7 @@ type alias Model = { websiteUrl : URL
                    , statusMessage : StatusMsg
                    , wordCounts : Dict Api.JobId Api.JobResult
                    , pendingRequests : Set Api.JobId
+                   , allJobIds : List Api.JobId
                    , spiralParams : SpiralParams
                    }
 
@@ -50,6 +51,9 @@ type Msg = WebsiteInput URL
          | ChangeDeltaTheta String
          | ChangeAccelerationR String
          | ChangeAccelerationTheta String
+         | JobListFailed Http.Error
+         | JobListSuccess (List Api.JobId)
+         | CheckAllJobs
 
 type alias Dimension =
     { width : Int
@@ -75,14 +79,16 @@ main =
     }
 
 init : Flags -> ( Model, Cmd Msg)
-init flags = ( Model "" NoStatus Dict.empty Set.empty (SpiralParams (1, 1) (1.0, 10.0) (-0.01, -0.01)), cmdFromFlags flags )
+init flags = ( Model "" NoStatus Dict.empty Set.empty [] (SpiralParams (1, 1) (1.0, 10.0) (-0.01, -0.01))
+             , cmdFromFlags flags )
 
 cmdFromFlags : Flags -> Cmd Msg
 cmdFromFlags flags =
     flags.jobId
         |> Maybe.map ( \ jobId -> Task.perform StatusJobFailed StatusJobSuccess (Api.getJobStatusById jobId))
         |> Maybe.withDefault Cmd.none
-
+        |> (flip (::)) [ Task.perform JobListFailed JobListSuccess ( Api.getJobs ) ]
+        |> Cmd.batch
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
@@ -172,6 +178,13 @@ update msg model =
                     in ( { model | spiralParams = { mSpiralParams | acceleration = (x, i) }}, Cmd.none)
                 Err err -> ( model, Cmd.none )
 
+        JobListFailed _ ->
+            ( model, Cmd.none )
+        JobListSuccess jobIds ->
+            ( { model | allJobIds = jobIds }, Cmd.none )
+        CheckAllJobs ->
+            ( model, Task.perform JobListFailed JobListSuccess (Api.getJobs))
+
 errorMsg : Http.Error -> String -> StatusMsg
 errorMsg error defaultMsg =
     case error of
@@ -197,9 +210,30 @@ view model =
              -- buttons to play with word cloud
              , spiralButtons model
              -- word cloud
-             , (List.map wordCloud (List.map (\jobResult -> wordSpiralPositions jobResult model.spiralParams)
-                                        (Dict.values model.wordCounts)))
+             , (List.map wordCloudView (List.map (\jobResult -> (jobResult.jobResultUrl, wordSpiralPositions jobResult model.spiralParams))
+                                            (Dict.values model.wordCounts)))
+             , jobListView model.allJobIds
              ])
+
+jobListView : List Api.JobId -> List (Html Msg)
+jobListView jobIds =
+    jobIds
+        |> List.map (\ jId ->
+                         let url = jobIdToUrl jId
+                         in div [class "all-job-id"]
+                                [ a [ class "url-msg"
+                                      , href url
+                                      ]
+                                      [ text url ]])
+        |> (\ jobDivs -> if List.length jobDivs == 0
+                         then (text "Be the first one to generate a word-cloud of sanskrit website.") :: jobDivs
+                         else (text "Some cool word-cloud for you:") :: jobDivs)
+        |> div [ class "all-jobs-list" ]
+        |> (flip (::)) []
+
+
+jobIdToUrl : Api.JobId -> String
+jobIdToUrl jId = "/?job-id=" ++ jId
 
 spiralButtons : Model -> List (Html Msg)
 spiralButtons model =
@@ -209,7 +243,7 @@ spiralButtons model =
     in if Dict.isEmpty model.wordCounts
        then []
        else [ div [ class "input-boxes"]
-                  [ text "Changes values to play with word cloud :"
+                  [ text "Change values to play with word cloud :"
                   , div []
                       [ text "r : "
                       , input [ onInput ChangeInitialR
@@ -281,7 +315,8 @@ timeSubs model =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    timeSubs model
+    Sub.batch [ timeSubs model
+              , Time.every (10 * Time.second) (\ _ -> CheckAllJobs)]
 
 svgDimension : WordCloud -> Dimension
 svgDimension wordCloud =
@@ -298,8 +333,8 @@ svgDimension wordCloud =
         height = abs(maxY - minY)
     in Dimension (round width + 1) (round height + 1)
 
-wordCloud : WordCloud -> Html Msg
-wordCloud wordsCount =
+wordCloudView : (String, WordCloud) -> Html Msg
+wordCloudView (url, wordsCount) =
     let dimension = svgDimension wordsCount
     in wordsCount
         |> Dict.toList
@@ -316,6 +351,10 @@ wordCloud wordsCount =
         |> Svg.svg [ dimension.width |> toString |> SvgA.width
                    , SvgA.height (toString dimension.height)
                    ]
+        |> (flip (::)) []
+        |> (::) (div [class "word-cloud-heading"] [ text ("Word cloud : " ++ url)])
+        |> div [class "svg-word-cloud"]
+
 
 wordSpiralPositions : Api.JobResult -> SpiralParams -> WordCloud
 wordSpiralPositions jobResult { initial, deltas, acceleration } =

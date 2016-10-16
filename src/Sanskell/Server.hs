@@ -98,6 +98,9 @@ jobStatus ST.Server{..} jobId = do
             -- job finished successfully..
             Right _   -> return . Right $ ST.JobStatus jobId (ST.Message (mkJobUrl config jobId)) ST.Finished
 
+jobsList :: ST.Server -> IO [ ST.JobId ]
+jobsList ST.Server{..} = do
+  M.keys <$> Con.readMVar jobResults
 
 mkJobUrl :: ST.Config -> ST.JobId -> String
 mkJobUrl (ST.Config { rootUrl = (ST.URL url)}) (ST.JobId jobId) =
