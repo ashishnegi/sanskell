@@ -10082,7 +10082,7 @@ var _ashishnegi$sanskell$Main$svgDimension = function (wordCloud) {
 		_elm_lang$core$Maybe$withDefault,
 		0,
 		_elm_lang$core$List$minimum(allXs));
-	var width = _elm_lang$core$Basics$abs(maxX - minX);
+	var width = _elm_lang$core$Basics$abs((maxX - minX) + 200);
 	var allYs = A2(
 		_elm_lang$core$List$map,
 		function (_p12) {
@@ -10098,7 +10098,7 @@ var _ashishnegi$sanskell$Main$svgDimension = function (wordCloud) {
 		_elm_lang$core$Maybe$withDefault,
 		0,
 		_elm_lang$core$List$minimum(allYs));
-	var height = _elm_lang$core$Basics$abs(maxY - minY);
+	var height = _elm_lang$core$Basics$abs((maxY - minY) + 100);
 	return A2(
 		_ashishnegi$sanskell$Main$Dimension,
 		_elm_lang$core$Basics$round(width) + 1,
@@ -10267,7 +10267,7 @@ var _ashishnegi$sanskell$Main$wordSpiralPositions = F2(
 					_elm_lang$core$List$map,
 					function (_p38) {
 						var _p39 = _p38;
-						return {ctor: '_Tuple2', _0: _p39._0 + (width / 2), _1: _p39._1 + (height / 2)};
+						return {ctor: '_Tuple2', _0: (_p39._0 + (width / 2)) + 50, _1: (_p39._1 + (height / 2)) + 50};
 					},
 					positions)));
 	});
