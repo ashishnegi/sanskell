@@ -10207,7 +10207,9 @@ var _ashishnegi$sanskell$Main$spiralButtons = function (model) {
 			A2(
 			_elm_lang$html$Html$div,
 			_elm_lang$core$Native_List.fromArray(
-				[]),
+				[
+					_elm_lang$html$Html_Attributes$class('input-boxes')
+				]),
 			_elm_lang$core$Native_List.fromArray(
 				[
 					A2(

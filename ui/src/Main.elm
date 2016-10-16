@@ -206,7 +206,7 @@ spiralButtons model =
         (dr, dt) = model.spiralParams.deltas
         (ddr, ddt) = model.spiralParams.acceleration
     in
-    [ div []
+    [ div [ class "input-boxes"]
         [ div []
               [ text "r : "
               , input [ onInput ChangeInitialR
