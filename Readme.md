@@ -16,6 +16,8 @@ start server with :
 `stack exec sanskell-exe`
 
 ## Todo
+*. Add api endpoint for reading all .response files
+*. Add api endpoint for all successful job-ids
 1. Have timeout for "crawling thread" in case it never returns..
    Add logging/exception handling in server : sometimes seems to not work.
 2. Have job start/finish time in JobResult.
