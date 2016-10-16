@@ -329,8 +329,8 @@ svgDimension wordCloud =
         allYs = List.map (\ (x,y) -> y) positions
         maxY = Maybe.withDefault 0 (List.maximum allYs)
         minY = Maybe.withDefault 0 (List.minimum allYs)
-        width = abs(maxX - minX)
-        height = abs(maxY - minY)
+        width = abs(maxX - minX + 200)
+        height = abs(maxY - minY + 100)
     in Dimension (round width + 1) (round height + 1)
 
 wordCloudView : (String, WordCloud) -> Html Msg
@@ -377,7 +377,7 @@ wordSpiralPositions jobResult { initial, deltas, acceleration } =
         width = abs(maxX - minX)
         height = abs(maxY - minY)
     in positions
-        |> List.map (\ (x, y) -> (x + width/2 , y + height/2))
+        |> List.map (\ (x, y) -> (x + width/2 + 50 , y + height/2 + 50))
         |> List.map (\ (x,y) -> Position (round x) (round y))
         |> makeWordCloud jobResult
 
