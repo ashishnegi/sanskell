@@ -10058,58 +10058,94 @@ var _ashishnegi$sanskell$Main$Position = F2(
 	function (a, b) {
 		return {x: a, y: b};
 	});
-var _ashishnegi$sanskell$Main$wordSpiralPositions = F5(
-	function (jobResult, dimension, _p13, _p12, _p11) {
-		var _p14 = _p13;
-		var _p15 = _p12;
-		var _p16 = _p11;
+var _ashishnegi$sanskell$Main$wordSpiralPositions = F2(
+	function (jobResult, _p11) {
+		var _p12 = _p11;
+		var _p13 = _p12.acceleration;
+		var accR = _p13._0;
+		var accTheta = _p13._1;
+		var _p14 = _p12.deltas;
+		var deltaR = _p14._0;
+		var deltaTheta = _p14._1;
+		var _p15 = _p12.initial;
+		var initialR = _p15._0;
+		var initialTheta = _p15._1;
+		var positions = A2(
+			_elm_lang$core$List$map,
+			function (_p16) {
+				var _p17 = _p16;
+				var _p19 = _p17._1;
+				var _p18 = _p17._0;
+				return {
+					ctor: '_Tuple2',
+					_0: _p18 * _elm_lang$core$Basics$cos(_p19),
+					_1: _p18 * _elm_lang$core$Basics$sin(_p19)
+				};
+			},
+			A3(
+				_elm_lang$core$List$scanl,
+				F2(
+					function (_p21, _p20) {
+						var _p22 = _p20;
+						var newTheta = _p22._1 + (deltaTheta * (1 + accTheta));
+						var newR = _p22._0 + (deltaR * (1 + accR));
+						return {ctor: '_Tuple2', _0: newR, _1: newTheta};
+					}),
+				{ctor: '_Tuple2', _0: initialR, _1: initialTheta},
+				_elm_lang$core$Native_List.range(
+					1,
+					_elm_lang$core$Dict$size(jobResult.wordsCount))));
+		var allXs = A2(
+			_elm_lang$core$List$map,
+			function (_p23) {
+				var _p24 = _p23;
+				return _p24._0;
+			},
+			positions);
+		var maxX = A2(
+			_elm_lang$core$Maybe$withDefault,
+			0,
+			_elm_lang$core$List$maximum(allXs));
+		var minX = A2(
+			_elm_lang$core$Maybe$withDefault,
+			0,
+			_elm_lang$core$List$minimum(allXs));
+		var width = _elm_lang$core$Basics$abs(maxX - minX);
+		var allYs = A2(
+			_elm_lang$core$List$map,
+			function (_p25) {
+				var _p26 = _p25;
+				return _p26._1;
+			},
+			positions);
+		var maxY = A2(
+			_elm_lang$core$Maybe$withDefault,
+			0,
+			_elm_lang$core$List$maximum(allYs));
+		var minY = A2(
+			_elm_lang$core$Maybe$withDefault,
+			0,
+			_elm_lang$core$List$minimum(allYs));
+		var height = _elm_lang$core$Basics$abs(maxY - minY);
 		return A2(
 			_ashishnegi$sanskell$Main$makeWordCloud,
 			jobResult,
 			A2(
 				_elm_lang$core$List$map,
-				function (_p17) {
-					var _p18 = _p17;
+				function (_p27) {
+					var _p28 = _p27;
 					return A2(
 						_ashishnegi$sanskell$Main$Position,
-						_elm_lang$core$Basics$round(_p18._0),
-						_elm_lang$core$Basics$round(_p18._1));
+						_elm_lang$core$Basics$round(_p28._0),
+						_elm_lang$core$Basics$round(_p28._1));
 				},
 				A2(
 					_elm_lang$core$List$map,
-					function (_p19) {
-						var _p20 = _p19;
-						return {
-							ctor: '_Tuple2',
-							_0: _p20._0 + (_elm_lang$core$Basics$toFloat(dimension.width) / 2),
-							_1: _p20._1 + (_elm_lang$core$Basics$toFloat(dimension.height) / 2)
-						};
+					function (_p29) {
+						var _p30 = _p29;
+						return {ctor: '_Tuple2', _0: _p30._0 + (width / 2), _1: _p30._1 + (height / 2)};
 					},
-					A2(
-						_elm_lang$core$List$map,
-						function (_p21) {
-							var _p22 = _p21;
-							var _p24 = _p22._1;
-							var _p23 = _p22._0;
-							return {
-								ctor: '_Tuple2',
-								_0: _p23 * _elm_lang$core$Basics$cos(_p24),
-								_1: _p23 * _elm_lang$core$Basics$sin(_p24)
-							};
-						},
-						A3(
-							_elm_lang$core$List$scanl,
-							F2(
-								function (_p26, _p25) {
-									var _p27 = _p25;
-									var newTheta = _p27._1 + (_p15._1 * (1 + _p16._1));
-									var newR = _p27._0 + (_p15._0 * (1 + _p16._0));
-									return {ctor: '_Tuple2', _0: newR, _1: newTheta};
-								}),
-							{ctor: '_Tuple2', _0: _p14._0, _1: _p14._1},
-							_elm_lang$core$Native_List.range(
-								1,
-								_elm_lang$core$Dict$size(jobResult.wordsCount)))))));
+					positions)));
 	});
 var _ashishnegi$sanskell$Main$Flags = function (a) {
 	return {jobId: a};
@@ -10123,13 +10159,13 @@ var _ashishnegi$sanskell$Main$ErrorMessage = function (a) {
 };
 var _ashishnegi$sanskell$Main$errorMsg = F2(
 	function (error, defaultMsg) {
-		var _p28 = error;
-		if (_p28.ctor === 'BadResponse') {
+		var _p31 = error;
+		if (_p31.ctor === 'BadResponse') {
 			return _ashishnegi$sanskell$Main$ErrorMessage(
 				A2(
 					_elm_lang$core$Basics_ops['++'],
 					defaultMsg,
-					A2(_elm_lang$core$Basics_ops['++'], ' : ', _p28._1)));
+					A2(_elm_lang$core$Basics_ops['++'], ' : ', _p31._1)));
 		} else {
 			return _ashishnegi$sanskell$Main$ErrorMessage(defaultMsg);
 		}
@@ -10157,15 +10193,15 @@ var _ashishnegi$sanskell$Main$ChangeInitialR = function (a) {
 	return {ctor: 'ChangeInitialR', _0: a};
 };
 var _ashishnegi$sanskell$Main$spiralButtons = function (model) {
-	var _p29 = model.spiralParams.acceleration;
-	var ddr = _p29._0;
-	var ddt = _p29._1;
-	var _p30 = model.spiralParams.deltas;
-	var dr = _p30._0;
-	var dt = _p30._1;
-	var _p31 = model.spiralParams.initial;
-	var r = _p31._0;
-	var t = _p31._1;
+	var _p32 = model.spiralParams.acceleration;
+	var ddr = _p32._0;
+	var ddt = _p32._1;
+	var _p33 = model.spiralParams.deltas;
+	var dr = _p33._0;
+	var dt = _p33._1;
+	var _p34 = model.spiralParams.initial;
+	var r = _p34._0;
+	var t = _p34._1;
 	return _elm_lang$core$Native_List.fromArray(
 		[
 			A2(
@@ -10180,33 +10216,19 @@ var _ashishnegi$sanskell$Main$spiralButtons = function (model) {
 						[]),
 					_elm_lang$core$Native_List.fromArray(
 						[
+							_elm_lang$html$Html$text('r : '),
 							A2(
-							_elm_lang$html$Html$button,
+							_elm_lang$html$Html$input,
 							_elm_lang$core$Native_List.fromArray(
 								[
-									_elm_lang$html$Html_Events$onClick(
-									_ashishnegi$sanskell$Main$ChangeInitialR(1))
+									_elm_lang$html$Html_Events$onInput(_ashishnegi$sanskell$Main$ChangeInitialR),
+									_elm_lang$html$Html_Attributes$placeholder(
+									_elm_lang$core$Basics$toString(r)),
+									_elm_lang$html$Html_Attributes$value(
+									_elm_lang$core$Basics$toString(r))
 								]),
 							_elm_lang$core$Native_List.fromArray(
-								[
-									_elm_lang$html$Html$text('↑')
-								])),
-							_elm_lang$html$Html$text(
-							A2(
-								_elm_lang$core$Basics_ops['++'],
-								'r : ',
-								_elm_lang$core$Basics$toString(r))),
-							A2(
-							_elm_lang$html$Html$button,
-							_elm_lang$core$Native_List.fromArray(
-								[
-									_elm_lang$html$Html_Events$onClick(
-									_ashishnegi$sanskell$Main$ChangeInitialR(-1))
-								]),
-							_elm_lang$core$Native_List.fromArray(
-								[
-									_elm_lang$html$Html$text('↓')
-								]))
+								[]))
 						])),
 					A2(
 					_elm_lang$html$Html$div,
@@ -10214,33 +10236,19 @@ var _ashishnegi$sanskell$Main$spiralButtons = function (model) {
 						[]),
 					_elm_lang$core$Native_List.fromArray(
 						[
+							_elm_lang$html$Html$text('θ : '),
 							A2(
-							_elm_lang$html$Html$button,
+							_elm_lang$html$Html$input,
 							_elm_lang$core$Native_List.fromArray(
 								[
-									_elm_lang$html$Html_Events$onClick(
-									_ashishnegi$sanskell$Main$ChangeInitialTheta(1))
+									_elm_lang$html$Html_Events$onInput(_ashishnegi$sanskell$Main$ChangeInitialTheta),
+									_elm_lang$html$Html_Attributes$placeholder(
+									_elm_lang$core$Basics$toString(t)),
+									_elm_lang$html$Html_Attributes$value(
+									_elm_lang$core$Basics$toString(t))
 								]),
 							_elm_lang$core$Native_List.fromArray(
-								[
-									_elm_lang$html$Html$text('↑')
-								])),
-							_elm_lang$html$Html$text(
-							A2(
-								_elm_lang$core$Basics_ops['++'],
-								'θ : ',
-								_elm_lang$core$Basics$toString(t))),
-							A2(
-							_elm_lang$html$Html$button,
-							_elm_lang$core$Native_List.fromArray(
-								[
-									_elm_lang$html$Html_Events$onClick(
-									_ashishnegi$sanskell$Main$ChangeInitialTheta(-1))
-								]),
-							_elm_lang$core$Native_List.fromArray(
-								[
-									_elm_lang$html$Html$text('↓')
-								]))
+								[]))
 						])),
 					A2(
 					_elm_lang$html$Html$div,
@@ -10248,33 +10256,19 @@ var _ashishnegi$sanskell$Main$spiralButtons = function (model) {
 						[]),
 					_elm_lang$core$Native_List.fromArray(
 						[
+							_elm_lang$html$Html$text('Δr : '),
 							A2(
-							_elm_lang$html$Html$button,
+							_elm_lang$html$Html$input,
 							_elm_lang$core$Native_List.fromArray(
 								[
-									_elm_lang$html$Html_Events$onClick(
-									_ashishnegi$sanskell$Main$ChangeDeltaR(1))
+									_elm_lang$html$Html_Events$onInput(_ashishnegi$sanskell$Main$ChangeDeltaR),
+									_elm_lang$html$Html_Attributes$placeholder(
+									_elm_lang$core$Basics$toString(dr)),
+									_elm_lang$html$Html_Attributes$value(
+									_elm_lang$core$Basics$toString(dr))
 								]),
 							_elm_lang$core$Native_List.fromArray(
-								[
-									_elm_lang$html$Html$text('↑')
-								])),
-							_elm_lang$html$Html$text(
-							A2(
-								_elm_lang$core$Basics_ops['++'],
-								'Δr : ',
-								_elm_lang$core$Basics$toString(dr))),
-							A2(
-							_elm_lang$html$Html$button,
-							_elm_lang$core$Native_List.fromArray(
-								[
-									_elm_lang$html$Html_Events$onClick(
-									_ashishnegi$sanskell$Main$ChangeDeltaR(-1))
-								]),
-							_elm_lang$core$Native_List.fromArray(
-								[
-									_elm_lang$html$Html$text('↓')
-								]))
+								[]))
 						])),
 					A2(
 					_elm_lang$html$Html$div,
@@ -10282,33 +10276,19 @@ var _ashishnegi$sanskell$Main$spiralButtons = function (model) {
 						[]),
 					_elm_lang$core$Native_List.fromArray(
 						[
+							_elm_lang$html$Html$text('Δθ : '),
 							A2(
-							_elm_lang$html$Html$button,
+							_elm_lang$html$Html$input,
 							_elm_lang$core$Native_List.fromArray(
 								[
-									_elm_lang$html$Html_Events$onClick(
-									_ashishnegi$sanskell$Main$ChangeDeltaTheta(1))
+									_elm_lang$html$Html_Events$onInput(_ashishnegi$sanskell$Main$ChangeDeltaTheta),
+									_elm_lang$html$Html_Attributes$placeholder(
+									_elm_lang$core$Basics$toString(dt)),
+									_elm_lang$html$Html_Attributes$value(
+									_elm_lang$core$Basics$toString(dt))
 								]),
 							_elm_lang$core$Native_List.fromArray(
-								[
-									_elm_lang$html$Html$text('↑')
-								])),
-							_elm_lang$html$Html$text(
-							A2(
-								_elm_lang$core$Basics_ops['++'],
-								'Δθ : ',
-								_elm_lang$core$Basics$toString(dt))),
-							A2(
-							_elm_lang$html$Html$button,
-							_elm_lang$core$Native_List.fromArray(
-								[
-									_elm_lang$html$Html_Events$onClick(
-									_ashishnegi$sanskell$Main$ChangeDeltaTheta(-1))
-								]),
-							_elm_lang$core$Native_List.fromArray(
-								[
-									_elm_lang$html$Html$text('↓')
-								]))
+								[]))
 						])),
 					A2(
 					_elm_lang$html$Html$div,
@@ -10316,33 +10296,19 @@ var _ashishnegi$sanskell$Main$spiralButtons = function (model) {
 						[]),
 					_elm_lang$core$Native_List.fromArray(
 						[
+							_elm_lang$html$Html$text('ΔΔr : '),
 							A2(
-							_elm_lang$html$Html$button,
+							_elm_lang$html$Html$input,
 							_elm_lang$core$Native_List.fromArray(
 								[
-									_elm_lang$html$Html_Events$onClick(
-									_ashishnegi$sanskell$Main$ChangeAccelerationR(5.0e-3))
+									_elm_lang$html$Html_Events$onInput(_ashishnegi$sanskell$Main$ChangeAccelerationR),
+									_elm_lang$html$Html_Attributes$placeholder(
+									_elm_lang$core$Basics$toString(ddr)),
+									_elm_lang$html$Html_Attributes$value(
+									_elm_lang$core$Basics$toString(ddr))
 								]),
 							_elm_lang$core$Native_List.fromArray(
-								[
-									_elm_lang$html$Html$text('↑')
-								])),
-							_elm_lang$html$Html$text(
-							A2(
-								_elm_lang$core$Basics_ops['++'],
-								'ΔΔr : ',
-								_elm_lang$core$Basics$toString(ddr))),
-							A2(
-							_elm_lang$html$Html$button,
-							_elm_lang$core$Native_List.fromArray(
-								[
-									_elm_lang$html$Html_Events$onClick(
-									_ashishnegi$sanskell$Main$ChangeAccelerationR(-5.0e-3))
-								]),
-							_elm_lang$core$Native_List.fromArray(
-								[
-									_elm_lang$html$Html$text('↓')
-								]))
+								[]))
 						])),
 					A2(
 					_elm_lang$html$Html$div,
@@ -10350,33 +10316,19 @@ var _ashishnegi$sanskell$Main$spiralButtons = function (model) {
 						[]),
 					_elm_lang$core$Native_List.fromArray(
 						[
+							_elm_lang$html$Html$text('ΔΔθ : '),
 							A2(
-							_elm_lang$html$Html$button,
+							_elm_lang$html$Html$input,
 							_elm_lang$core$Native_List.fromArray(
 								[
-									_elm_lang$html$Html_Events$onClick(
-									_ashishnegi$sanskell$Main$ChangeAccelerationTheta(5.0e-3))
+									_elm_lang$html$Html_Events$onInput(_ashishnegi$sanskell$Main$ChangeAccelerationTheta),
+									_elm_lang$html$Html_Attributes$placeholder(
+									_elm_lang$core$Basics$toString(ddt)),
+									_elm_lang$html$Html_Attributes$value(
+									_elm_lang$core$Basics$toString(ddt))
 								]),
 							_elm_lang$core$Native_List.fromArray(
-								[
-									_elm_lang$html$Html$text('↑')
-								])),
-							_elm_lang$html$Html$text(
-							A2(
-								_elm_lang$core$Basics_ops['++'],
-								'ΔΔθ : ',
-								_elm_lang$core$Basics$toString(ddt))),
-							A2(
-							_elm_lang$html$Html$button,
-							_elm_lang$core$Native_List.fromArray(
-								[
-									_elm_lang$html$Html_Events$onClick(
-									_ashishnegi$sanskell$Main$ChangeAccelerationTheta(-5.0e-3))
-								]),
-							_elm_lang$core$Native_List.fromArray(
-								[
-									_elm_lang$html$Html$text('↓')
-								]))
+								[]))
 						]))
 				]))
 		]);
@@ -10386,7 +10338,7 @@ var _ashishnegi$sanskell$Main$timeSubs = function (model) {
 	return _elm_lang$core$Set$isEmpty(model.pendingRequests) ? _elm_lang$core$Platform_Sub$none : A2(
 		_elm_lang$core$Time$every,
 		2 * _elm_lang$core$Time$second,
-		function (_p32) {
+		function (_p35) {
 			return _ashishnegi$sanskell$Main$CheckJobStatus;
 		});
 };
@@ -10445,14 +10397,14 @@ var _ashishnegi$sanskell$Main$PostJobSuccess = function (a) {
 };
 var _ashishnegi$sanskell$Main$update = F2(
 	function (msg, model) {
-		var _p33 = msg;
-		switch (_p33.ctor) {
+		var _p36 = msg;
+		switch (_p36.ctor) {
 			case 'WebsiteInput':
 				return {
 					ctor: '_Tuple2',
 					_0: _elm_lang$core$Native_Utils.update(
 						model,
-						{websiteUrl: _p33._0}),
+						{websiteUrl: _p36._0}),
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
 			case 'PostJob':
@@ -10478,7 +10430,7 @@ var _ashishnegi$sanskell$Main$update = F2(
 						_elm_lang$core$Task$perform,
 						_ashishnegi$sanskell$Main$StatusJobFailed,
 						_ashishnegi$sanskell$Main$StatusJobSuccess,
-						_ashishnegi$sanskell$Api$getJobStatusById(_p33._0))
+						_ashishnegi$sanskell$Api$getJobStatusById(_p36._0))
 				};
 			case 'PostJobFailed':
 				return {
@@ -10486,46 +10438,46 @@ var _ashishnegi$sanskell$Main$update = F2(
 					_0: _elm_lang$core$Native_Utils.update(
 						model,
 						{
-							statusMessage: A2(_ashishnegi$sanskell$Main$errorMsg, _p33._0, 'Failed to post job. Please try after some time.')
+							statusMessage: A2(_ashishnegi$sanskell$Main$errorMsg, _p36._0, 'Failed to post job. Please try after some time.')
 						}),
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
 			case 'StatusJobSuccess':
-				var _p36 = _p33._0;
-				var _p34 = function () {
-					var _p35 = _p36.jobState;
-					switch (_p35.ctor) {
+				var _p39 = _p36._0;
+				var _p37 = function () {
+					var _p38 = _p39.jobState;
+					switch (_p38.ctor) {
 						case 'Pending':
 							return {
 								ctor: '_Tuple3',
-								_0: A2(_ashishnegi$sanskell$Main$URLMessage, 'Still working on your job: ', _p36.jobResult.message),
+								_0: A2(_ashishnegi$sanskell$Main$URLMessage, 'Still working on your job: ', _p39.jobResult.message),
 								_1: _elm_lang$core$Platform_Cmd$none,
 								_2: true
 							};
 						case 'Finished':
 							return {
 								ctor: '_Tuple3',
-								_0: A2(_ashishnegi$sanskell$Main$URLMessage, 'You can view the word cloud at: ', _p36.jobResult.message),
+								_0: A2(_ashishnegi$sanskell$Main$URLMessage, 'You can view the word cloud at: ', _p39.jobResult.message),
 								_1: A3(
 									_elm_lang$core$Task$perform,
 									_ashishnegi$sanskell$Main$JobResultFailed,
 									_ashishnegi$sanskell$Main$JobResultSuccess,
-									_ashishnegi$sanskell$Api$getJobById(_p36.statusJobId)),
+									_ashishnegi$sanskell$Api$getJobById(_p39.statusJobId)),
 								_2: false
 							};
 						default:
 							return {
 								ctor: '_Tuple3',
-								_0: _ashishnegi$sanskell$Main$ErrorMessage(_p36.jobResult.message),
+								_0: _ashishnegi$sanskell$Main$ErrorMessage(_p39.jobResult.message),
 								_1: _elm_lang$core$Platform_Cmd$none,
 								_2: false
 							};
 					}
 				}();
-				var msg = _p34._0;
-				var cmd = _p34._1;
-				var pending = _p34._2;
-				var pendingRequests = pending ? A2(_elm_lang$core$Set$insert, _p36.statusJobId, model.pendingRequests) : A2(_elm_lang$core$Set$remove, _p36.statusJobId, model.pendingRequests);
+				var msg = _p37._0;
+				var cmd = _p37._1;
+				var pending = _p37._2;
+				var pendingRequests = pending ? A2(_elm_lang$core$Set$insert, _p39.statusJobId, model.pendingRequests) : A2(_elm_lang$core$Set$remove, _p39.statusJobId, model.pendingRequests);
 				return {
 					ctor: '_Tuple2',
 					_0: _elm_lang$core$Native_Utils.update(
@@ -10539,18 +10491,18 @@ var _ashishnegi$sanskell$Main$update = F2(
 					_0: _elm_lang$core$Native_Utils.update(
 						model,
 						{
-							statusMessage: A2(_ashishnegi$sanskell$Main$errorMsg, _p33._0, 'Failed to get job status. Please try again.')
+							statusMessage: A2(_ashishnegi$sanskell$Main$errorMsg, _p36._0, 'Failed to get job status. Please try again.')
 						}),
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
 			case 'JobResultSuccess':
-				var _p37 = _p33._0;
+				var _p40 = _p36._0;
 				return {
 					ctor: '_Tuple2',
 					_0: _elm_lang$core$Native_Utils.update(
 						model,
 						{
-							wordCounts: A3(_elm_lang$core$Dict$insert, _p37.resultJobId, _p37, model.wordCounts)
+							wordCounts: A3(_elm_lang$core$Dict$insert, _p40.resultJobId, _p40, model.wordCounts)
 						}),
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
@@ -10560,7 +10512,7 @@ var _ashishnegi$sanskell$Main$update = F2(
 					_0: _elm_lang$core$Native_Utils.update(
 						model,
 						{
-							statusMessage: A2(_ashishnegi$sanskell$Main$errorMsg, _p33._0, 'Failed to get data. Please try again.')
+							statusMessage: A2(_ashishnegi$sanskell$Main$errorMsg, _p36._0, 'Failed to get data. Please try again.')
 						}),
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
@@ -10581,113 +10533,143 @@ var _ashishnegi$sanskell$Main$update = F2(
 							_elm_lang$core$Set$toList(model.pendingRequests)))
 				};
 			case 'ChangeInitialR':
-				var mSpiralParams = model.spiralParams;
-				var _p38 = model.spiralParams.initial;
-				var x = _p38._0;
-				var y = _p38._1;
-				return {
-					ctor: '_Tuple2',
-					_0: _elm_lang$core$Native_Utils.update(
-						model,
-						{
-							spiralParams: _elm_lang$core$Native_Utils.update(
-								mSpiralParams,
-								{
-									initial: {ctor: '_Tuple2', _0: x + _p33._0, _1: y}
-								})
-						}),
-					_1: _elm_lang$core$Platform_Cmd$none
-				};
+				var _p41 = _elm_lang$core$String$toFloat(_p36._0);
+				if (_p41.ctor === 'Ok') {
+					var mSpiralParams = model.spiralParams;
+					var _p42 = model.spiralParams.initial;
+					var x = _p42._0;
+					var y = _p42._1;
+					return {
+						ctor: '_Tuple2',
+						_0: _elm_lang$core$Native_Utils.update(
+							model,
+							{
+								spiralParams: _elm_lang$core$Native_Utils.update(
+									mSpiralParams,
+									{
+										initial: {ctor: '_Tuple2', _0: _p41._0, _1: y}
+									})
+							}),
+						_1: _elm_lang$core$Platform_Cmd$none
+					};
+				} else {
+					return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+				}
 			case 'ChangeInitialTheta':
-				var mSpiralParams = model.spiralParams;
-				var _p39 = model.spiralParams.initial;
-				var x = _p39._0;
-				var y = _p39._1;
-				return {
-					ctor: '_Tuple2',
-					_0: _elm_lang$core$Native_Utils.update(
-						model,
-						{
-							spiralParams: _elm_lang$core$Native_Utils.update(
-								mSpiralParams,
-								{
-									initial: {ctor: '_Tuple2', _0: x, _1: y + _p33._0}
-								})
-						}),
-					_1: _elm_lang$core$Platform_Cmd$none
-				};
+				var _p43 = _elm_lang$core$String$toFloat(_p36._0);
+				if (_p43.ctor === 'Ok') {
+					var mSpiralParams = model.spiralParams;
+					var _p44 = model.spiralParams.initial;
+					var x = _p44._0;
+					var y = _p44._1;
+					return {
+						ctor: '_Tuple2',
+						_0: _elm_lang$core$Native_Utils.update(
+							model,
+							{
+								spiralParams: _elm_lang$core$Native_Utils.update(
+									mSpiralParams,
+									{
+										initial: {ctor: '_Tuple2', _0: x, _1: _p43._0}
+									})
+							}),
+						_1: _elm_lang$core$Platform_Cmd$none
+					};
+				} else {
+					return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+				}
 			case 'ChangeDeltaR':
-				var mSpiralParams = model.spiralParams;
-				var _p40 = model.spiralParams.deltas;
-				var x = _p40._0;
-				var y = _p40._1;
-				return {
-					ctor: '_Tuple2',
-					_0: _elm_lang$core$Native_Utils.update(
-						model,
-						{
-							spiralParams: _elm_lang$core$Native_Utils.update(
-								mSpiralParams,
-								{
-									deltas: {ctor: '_Tuple2', _0: x + _p33._0, _1: y}
-								})
-						}),
-					_1: _elm_lang$core$Platform_Cmd$none
-				};
+				var _p45 = _elm_lang$core$String$toFloat(_p36._0);
+				if (_p45.ctor === 'Ok') {
+					var mSpiralParams = model.spiralParams;
+					var _p46 = model.spiralParams.deltas;
+					var x = _p46._0;
+					var y = _p46._1;
+					return {
+						ctor: '_Tuple2',
+						_0: _elm_lang$core$Native_Utils.update(
+							model,
+							{
+								spiralParams: _elm_lang$core$Native_Utils.update(
+									mSpiralParams,
+									{
+										deltas: {ctor: '_Tuple2', _0: _p45._0, _1: y}
+									})
+							}),
+						_1: _elm_lang$core$Platform_Cmd$none
+					};
+				} else {
+					return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+				}
 			case 'ChangeDeltaTheta':
-				var mSpiralParams = model.spiralParams;
-				var _p41 = model.spiralParams.deltas;
-				var x = _p41._0;
-				var y = _p41._1;
-				return {
-					ctor: '_Tuple2',
-					_0: _elm_lang$core$Native_Utils.update(
-						model,
-						{
-							spiralParams: _elm_lang$core$Native_Utils.update(
-								mSpiralParams,
-								{
-									deltas: {ctor: '_Tuple2', _0: x, _1: y + _p33._0}
-								})
-						}),
-					_1: _elm_lang$core$Platform_Cmd$none
-				};
+				var _p47 = _elm_lang$core$String$toFloat(_p36._0);
+				if (_p47.ctor === 'Ok') {
+					var mSpiralParams = model.spiralParams;
+					var _p48 = model.spiralParams.deltas;
+					var x = _p48._0;
+					var y = _p48._1;
+					return {
+						ctor: '_Tuple2',
+						_0: _elm_lang$core$Native_Utils.update(
+							model,
+							{
+								spiralParams: _elm_lang$core$Native_Utils.update(
+									mSpiralParams,
+									{
+										deltas: {ctor: '_Tuple2', _0: x, _1: _p47._0}
+									})
+							}),
+						_1: _elm_lang$core$Platform_Cmd$none
+					};
+				} else {
+					return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+				}
 			case 'ChangeAccelerationR':
-				var mSpiralParams = model.spiralParams;
-				var _p42 = model.spiralParams.acceleration;
-				var x = _p42._0;
-				var y = _p42._1;
-				return {
-					ctor: '_Tuple2',
-					_0: _elm_lang$core$Native_Utils.update(
-						model,
-						{
-							spiralParams: _elm_lang$core$Native_Utils.update(
-								mSpiralParams,
-								{
-									acceleration: {ctor: '_Tuple2', _0: x + _p33._0, _1: y}
-								})
-						}),
-					_1: _elm_lang$core$Platform_Cmd$none
-				};
+				var _p49 = _elm_lang$core$String$toFloat(_p36._0);
+				if (_p49.ctor === 'Ok') {
+					var mSpiralParams = model.spiralParams;
+					var _p50 = model.spiralParams.acceleration;
+					var x = _p50._0;
+					var y = _p50._1;
+					return {
+						ctor: '_Tuple2',
+						_0: _elm_lang$core$Native_Utils.update(
+							model,
+							{
+								spiralParams: _elm_lang$core$Native_Utils.update(
+									mSpiralParams,
+									{
+										acceleration: {ctor: '_Tuple2', _0: _p49._0, _1: y}
+									})
+							}),
+						_1: _elm_lang$core$Platform_Cmd$none
+					};
+				} else {
+					return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+				}
 			default:
-				var mSpiralParams = model.spiralParams;
-				var _p43 = model.spiralParams.acceleration;
-				var x = _p43._0;
-				var y = _p43._1;
-				return {
-					ctor: '_Tuple2',
-					_0: _elm_lang$core$Native_Utils.update(
-						model,
-						{
-							spiralParams: _elm_lang$core$Native_Utils.update(
-								mSpiralParams,
-								{
-									acceleration: {ctor: '_Tuple2', _0: x, _1: y + _p33._0}
-								})
-						}),
-					_1: _elm_lang$core$Platform_Cmd$none
-				};
+				var _p51 = _elm_lang$core$String$toFloat(_p36._0);
+				if (_p51.ctor === 'Ok') {
+					var mSpiralParams = model.spiralParams;
+					var _p52 = model.spiralParams.acceleration;
+					var x = _p52._0;
+					var y = _p52._1;
+					return {
+						ctor: '_Tuple2',
+						_0: _elm_lang$core$Native_Utils.update(
+							model,
+							{
+								spiralParams: _elm_lang$core$Native_Utils.update(
+									mSpiralParams,
+									{
+										acceleration: {ctor: '_Tuple2', _0: x, _1: _p51._0}
+									})
+							}),
+						_1: _elm_lang$core$Platform_Cmd$none
+					};
+				} else {
+					return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+				}
 		}
 	});
 var _ashishnegi$sanskell$Main$PostJob = {ctor: 'PostJob'};
@@ -10732,9 +10714,7 @@ var _ashishnegi$sanskell$Main$view = function (model) {
 						_elm_lang$core$Native_List.fromArray(
 							[
 								_elm_lang$html$Html$text('Make word cloud')
-							])),
-						_elm_lang$html$Html$text(
-						_elm_lang$core$Basics$toString(model.spiralParams))
+							]))
 					]),
 					_elm_lang$core$Native_List.fromArray(
 					[
@@ -10746,13 +10726,7 @@ var _ashishnegi$sanskell$Main$view = function (model) {
 					A2(
 						_elm_lang$core$List$map,
 						function (jobResult) {
-							return A5(
-								_ashishnegi$sanskell$Main$wordSpiralPositions,
-								jobResult,
-								_ashishnegi$sanskell$Main$svgDimension(jobResult.wordsCount),
-								model.spiralParams.initial,
-								model.spiralParams.deltas,
-								model.spiralParams.acceleration);
+							return A2(_ashishnegi$sanskell$Main$wordSpiralPositions, jobResult, model.spiralParams);
 						},
 						_elm_lang$core$Dict$values(model.wordCounts))),
 					_ashishnegi$sanskell$Main$spiralButtons(model)
