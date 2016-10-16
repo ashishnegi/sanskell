@@ -27,7 +27,7 @@ startServer ST.Server{..} = do
     (jobId, url) <- Con.readChan jobChan
     Con.forkIO $ do
        wordMap <- SW.wordCloudOfWebsite url jobId
-       let jobRes = ST.JobResult jobId <$> wordMap
+       let jobRes = ST.JobResult jobId url <$> wordMap
        Con.modifyMVar_ jobResults (\m -> return . M.insertWith changeResult jobId jobRes $ m)
        -- remove from pending request
        Con.modifyMVar_ pendingJobs (return . DL.delete (jobId, url))

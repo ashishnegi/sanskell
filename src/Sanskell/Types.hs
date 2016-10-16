@@ -37,6 +37,7 @@ data CrawlConfig =
 data JobResult =
   JobResult
   { resultJobId :: JobId
+  , jobResultUrl :: String
   -- , should have job start/finish time
   , wordsCount  :: M.Map T.Text Integer
   }

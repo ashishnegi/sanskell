@@ -1,3 +1,4 @@
 .stack-work/*
 ui/elm-stuff
 ui/node_modules
+*.jobresult
