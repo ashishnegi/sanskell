@@ -182,7 +182,9 @@ view : Model -> Html Msg
 view model =
     div []
         (List.concat
-             [ [ div [ class "url-input" ]
+             [ [ div [ class "sanskell-heading" ]
+                     [ text "Sanskell" ]]
+             , [ div [ class "url-input" ]
                      [ Html.input [ onInput WebsiteInput
                                   , placeholder "any sanskrit website name" ]
                            []]
