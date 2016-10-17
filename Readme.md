@@ -16,8 +16,6 @@ start server with :
 `stack exec sanskell-exe`
 
 ## Todo
-*. Add api endpoint for reading all .response files
-*. Add api endpoint for all successful job-ids
 1. Have timeout for "crawling thread" in case it never returns..
    Add logging/exception handling in server : sometimes seems to not work.
 2. Have job start/finish time in JobResult.
@@ -28,7 +26,7 @@ start server with :
    add checksum to index.js and put in index.html. -- need asset pipelining / webpack. -- low priority
    some cache control of 1 minute would be good.
 
-
+*. Add api endpoint for reading all .response files : heroku dyno will lose all files; so no use; s3 is good option.
 * try to write tests for IO things.
 * break down IO things into more pure functions and test them.
 * have really more tests : property based as well; with -K1K test suite size.

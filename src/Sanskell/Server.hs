@@ -31,9 +31,9 @@ startServer ST.Server{..} = do
        Con.modifyMVar_ jobResults (\m -> return . M.insertWith changeResult jobId jobRes $ m)
        -- remove from pending request
        Con.modifyMVar_ pendingJobs (return . DL.delete (jobId, url))
-       -- write result to the disk
-       let ST.JobId jId = jobId
-       TIO.writeFile (show jId ++ ".jobresult") $ TL.toStrict . TLE.decodeUtf8 . A.encode $ jobRes
+       -- write result to the disk / todo : upload to s3
+       -- let ST.JobId jId = jobId
+       -- TIO.writeFile (show jId ++ ".jobresult") $ TL.toStrict . TLE.decodeUtf8 . A.encode $ jobRes
   where
     changeResult v1 v2 = case (v1, v2) of
        -- do not update if v2 failed.
